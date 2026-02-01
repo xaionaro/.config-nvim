@@ -13,6 +13,27 @@ vim.opt.rtp:prepend(lazypath)
 
 local lazy_config = require "configs.lazy"
 
+-- Ensure Neovim can see system treesitter parsers (your lua.so is here)
+do
+  local sys_nvim = "/usr/lib/x86_64-linux-gnu/nvim"
+
+  lazy_config.performance = lazy_config.performance or {}
+  lazy_config.performance.rtp = lazy_config.performance.rtp or {}
+  lazy_config.performance.rtp.paths = lazy_config.performance.rtp.paths or {}
+
+  local paths = lazy_config.performance.rtp.paths
+  local seen = false
+  for _, p in ipairs(paths) do
+    if p == sys_nvim then
+      seen = true
+      break
+    end
+  end
+  if not seen then
+    table.insert(paths, sys_nvim)
+  end
+end
+
 -- load plugins
 require("lazy").setup({
   {
