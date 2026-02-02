@@ -4,7 +4,9 @@ return {
   {
     "neovim/nvim-lspconfig",
     lazy = false,
-    config = function() require "configs.lspconfig" end,
+    config = function()
+      require "configs.lspconfig"
+    end,
   },
 
   -- AI Assistant
@@ -12,15 +14,47 @@ return {
     "ThePrimeagen/99",
     lazy = false,
     keys = {
-      { "<leader>ap", function() require("99").fill_in_function_prompt() end, mode = { "n", "v" }, desc = "99: fill function (with prompt)" },
-      { "<leader>af", function() require("99").fill_in_function() end, mode = "n", desc = "99: fill function" },
-      { "<leader>av", function() require("99").visual() end, mode = "v", desc = "99: visual" },
-      { "<leader>as", function() require("99").stop_all_requests() end, mode = { "n", "v" }, desc = "99: stop all" },
+      {
+        "<leader>ap",
+        function()
+          require("99").fill_in_function_prompt()
+        end,
+        mode = { "n", "v" },
+        desc = "99: fill function (with prompt)",
+      },
+      {
+        "<leader>af",
+        function()
+          require("99").fill_in_function()
+        end,
+        mode = "n",
+        desc = "99: fill function",
+      },
+      {
+        "<leader>av",
+        function()
+          require("99").visual()
+        end,
+        mode = "v",
+        desc = "99: visual",
+      },
+      {
+        "<leader>as",
+        function()
+          require("99").stop_all_requests()
+        end,
+        mode = { "n", "v" },
+        desc = "99: stop all",
+      },
     },
     config = function()
       local _99 = require "99"
       _99.setup {
-        logger = { level = _99.DEBUG, path = "/tmp/" .. vim.fs.basename(vim.uv.cwd()) .. ".99.debug", print_on_error = true },
+        logger = {
+          level = _99.DEBUG,
+          path = "/tmp/" .. vim.fs.basename(vim.uv.cwd()) .. ".99.debug",
+          print_on_error = true,
+        },
         completion = { custom_rules = { "scratch/custom_rules/" }, source = "cmp" },
         md_files = { "AGENT.md" },
       }
@@ -31,7 +65,9 @@ return {
   {
     "romgrk/barbar.nvim",
     dependencies = { "lewis6991/gitsigns.nvim", "nvim-tree/nvim-web-devicons" },
-    init = function() vim.g.barbar_auto_setup = false end,
+    init = function()
+      vim.g.barbar_auto_setup = false
+    end,
     opts = {},
     keys = {
       { "<C-,>", "<Cmd>BufferPrevious<CR>", desc = "Prev buffer tab" },
@@ -56,14 +92,21 @@ return {
     cmd = "Copilot",
     event = "InsertEnter",
     config = function()
-      require("copilot").setup({
+      require("copilot").setup {
         panel = { enabled = true, auto_refresh = true },
         suggestion = {
           enabled = true,
           auto_trigger = true,
-          keymap = { accept = "<S-CR>", accept_word = "<C-Right>", accept_line = "<C-Down>", next = "<M-]>", prev = "<M-[>", dismiss = "<C-]>", },
+          keymap = {
+            accept = "<S-CR>",
+            accept_word = "<C-Right>",
+            accept_line = "<C-Down>",
+            next = "<M-]>",
+            prev = "<M-[>",
+            dismiss = "<C-]>",
+          },
         },
-      })
+      }
     end,
   },
 
@@ -71,20 +114,62 @@ return {
   {
     "CopilotC-Nvim/CopilotChat.nvim",
     dependencies = { { "nvim-lua/plenary.nvim", branch = "master" } },
-    cmd = { "CopilotChat", "CopilotChatOpen", "CopilotChatClose", "CopilotChatToggle", "CopilotChatReset", "CopilotChatStop", "CopilotChatPrompts", "CopilotChatModels", "CopilotChatSave", "CopilotChatLoad", },
-    keys = {
-      { "<leader>ccw", function() require("CopilotChat").toggle({ window = { layout = "vertical", width = 0.5 } }) end, mode = { "n", "x" }, desc = "CopilotChat toggle (split)" },
-      { "<leader>ccr", function() require("CopilotChat").reset() end, mode = { "n", "x" }, desc = "CopilotChat reset" },
-      { "<C-i>", function()
-        local chat = require("CopilotChat")
-        local mode = vim.fn.mode()
-        local ctx = (mode == "v" or mode == "V" or mode == "\22") and "#selection " or "#buffer:active "
-        vim.ui.input({ prompt = "CopilotChat> " }, function(input)
-          if input and input ~= "" then chat.open({ window = { layout = "float", width = 80, height = 20, border = "rounded", title = " AI Assistant", zindex = 100 } }); chat.ask(ctx .. input) end
-        end)
-      end, mode = { "n", "x" }, desc = "CopilotChat inline (float)" },
+    cmd = {
+      "CopilotChat",
+      "CopilotChatOpen",
+      "CopilotChatClose",
+      "CopilotChatToggle",
+      "CopilotChatReset",
+      "CopilotChatStop",
+      "CopilotChatPrompts",
+      "CopilotChatModels",
+      "CopilotChatSave",
+      "CopilotChatLoad",
     },
-    opts = { window = { layout = "vertical", width = 0.5 }, auto_insert_mode = true, },
+    keys = {
+      {
+        "<leader>ccw",
+        function()
+          require("CopilotChat").toggle { window = { layout = "vertical", width = 0.25 } }
+        end,
+        mode = { "n", "x" },
+        desc = "CopilotChat toggle (split)",
+      },
+      {
+        "<leader>ccr",
+        function()
+          require("CopilotChat").reset()
+        end,
+        mode = { "n", "x" },
+        desc = "CopilotChat reset",
+      },
+      {
+        "<C-i>",
+        function()
+          local chat = require "CopilotChat"
+          local mode = vim.fn.mode()
+          local ctx = (mode == "v" or mode == "V" or mode == "\22") and "#selection " or "#buffer:active "
+          vim.ui.input({ prompt = "CopilotChat> " }, function(input)
+            if input and input ~= "" then
+              chat.open {
+                window = {
+                  layout = "float",
+                  width = 0.4,
+                  height = 0.4,
+                  border = "rounded",
+                  title = " AI Assistant",
+                  zindex = 100,
+                },
+              }
+              chat.ask(ctx .. input)
+            end
+          end)
+        end,
+        mode = { "n", "x" },
+        desc = "CopilotChat inline (float)",
+      },
+    },
+    opts = { window = { layout = "vertical", width = 0.25 }, auto_insert_mode = false },
   },
 
   -- Disable Autopairs
@@ -99,7 +184,9 @@ return {
     end,
     config = function(_, opts)
       require("conform").setup(opts)
-      vim.keymap.set({ "n", "v" }, "<leader>f", function() require("conform").format({ lsp_format = "fallback" }) end, { desc = "Format (conform)" })
+      vim.keymap.set({ "n", "v" }, "<leader>f", function()
+        require("conform").format { lsp_format = "fallback" }
+      end, { desc = "Format (conform)" })
     end,
   },
 
@@ -112,25 +199,59 @@ return {
     branch = "v3.x",
     dependencies = { "nvim-lua/plenary.nvim", "MunifTanjim/nui.nvim", "nvim-tree/nvim-web-devicons" },
     keys = { { "<leader>e", "<Cmd>Neotree toggle<CR>", desc = "Explorer (Neo-tree)" } },
-    opts = { filesystem = { filtered_items = { visible = true, hide_dotfiles = false, hide_gitignored = false } } },
+    opts = {
+      window = { width = 20 },
+      filesystem = { filtered_items = { visible = true, hide_dotfiles = false, hide_gitignored = false } },
+    },
   },
 
-  -- Scrollbar indicators
+  -- Telescope Frecency (VS Code-like file jumping)
   {
-    "lewis6991/satellite.nvim",
-    event = { "BufReadPost", "BufNewFile" },
-    dependencies = { "lewis6991/gitsigns.nvim" },
-    opts = {
-      current_only = false, winblend = 0, zindex = 40, width = 2,
-      excluded_filetypes = { "neo-tree", "TelescopePrompt", "lazy", "mason", "help" },
-      handlers = {
-        cursor = { enable = true, symbols = { "⎺", "⎻", "⎼", "⎽" } },
-        search = { enable = true },
-        diagnostic = { enable = true, signs = { "-", "=", "≡" }, min_severity = vim.diagnostic.severity.HINT },
-        gitsigns = { enable = true, signs = { add = "│", change = "│", delete = "-" } },
-        marks = { enable = true, show_builtins = false, key = "m" },
-        quickfix = { signs = { "-", "=", "≡" } },
+    "nvim-telescope/telescope-frecency.nvim",
+    config = function()
+      require("telescope").load_extension "frecency"
+    end,
+    dependencies = { "nvim-telescope/telescope.nvim" },
+  },
+
+  -- Scrollbar indicators (VS Code-like)
+  {
+    "petertriho/nvim-scrollbar",
+    dependencies = {
+      {
+        "kevinhwang91/nvim-hlslens",
+        config = function()
+          require("hlslens").setup { build_gi = false }
+        end,
       },
+      "lewis6991/gitsigns.nvim",
     },
+    event = { "BufReadPost", "BufNewFile" },
+    config = function()
+      local scrollbar = require "scrollbar"
+      local colors = require("base46").get_theme_tb "base_30"
+
+      scrollbar.setup {
+        show = true,
+        handle = {
+          text = " ",
+          color = colors.grey,
+          hide_if_all_visible = true,
+        },
+        marks = {
+          Search = { color = colors.orange },
+          Error = { color = colors.red },
+          Warn = { color = colors.yellow },
+          Info = { color = colors.blue },
+          Hint = { color = colors.purple },
+          Misc = { color = colors.green },
+        },
+        handlers = {
+          diagnostic = true,
+          search = true,
+          gitsigns = true,
+        },
+      }
+    end,
   },
 }

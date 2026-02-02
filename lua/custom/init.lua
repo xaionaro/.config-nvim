@@ -45,6 +45,52 @@ M.setup = function()
     end,
   })
   apply_highlights()
+
+  -- Auto-open Neo-tree and CopilotChat on startup
+  vim.api.nvim_create_autocmd("VimEnter", {
+    group = vim.api.nvim_create_augroup("AutoOpenSidebars", { clear = true }),
+    callback = function()
+      -- Ensure plugins are loaded before calling their commands
+      require("lazy").load { plugins = { "neo-tree.nvim", "CopilotChat.nvim" } }
+
+      -- Open Neo-tree
+      pcall(vim.cmd, "Neotree show")
+      -- Open CopilotChat
+      pcall(vim.cmd, "CopilotChatOpen")
+
+      -- Return focus to the editor
+      vim.schedule(function()
+        local wins = vim.api.nvim_list_wins()
+        for _, win in ipairs(wins) do
+          local bufnr = vim.api.nvim_win_get_buf(win)
+          local ft = vim.api.nvim_get_option_value("filetype", { buf = bufnr })
+          if ft ~= "neo-tree" and ft ~= "copilot-chat" then
+            vim.api.nvim_set_current_win(win)
+            vim.cmd "stopinsert"
+            break
+          end
+        end
+      end)
+    end,
+  })
+
+  -- Auto-exit if only sidebars are left
+  vim.api.nvim_create_autocmd("BufEnter", {
+    group = vim.api.nvim_create_augroup("AutoQuit", { clear = true }),
+    callback = function()
+      local wins = vim.api.nvim_list_wins()
+      local sidebar_fts = { ["neo-tree"] = true, ["copilot-chat"] = true }
+
+      for _, win in ipairs(wins) do
+        local bufnr = vim.api.nvim_win_get_buf(win)
+        local ft = vim.api.nvim_get_option_value("filetype", { buf = bufnr })
+        if not sidebar_fts[ft] then
+          return
+        end
+      end
+      vim.cmd "qa"
+    end,
+  })
 end
 
 return M
