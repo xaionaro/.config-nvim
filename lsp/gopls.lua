@@ -1,7 +1,10 @@
 return {
   cmd = { 'gopls', 'serve' },
   filetypes = { 'go', 'gomod', 'gowork', 'gotmpl' },
-  root_dir = require('lspconfig.util').root_pattern('go.work', 'go.mod', '.git'),
+  -- Synchronous root discovery prevents the "assertion failed" crash in Neovim 0.11 startup
+  root_dir = function(fname)
+    return vim.fs.root(fname, { 'go.work', 'go.mod', '.git' })
+  end,
   settings = {
     gopls = {
       completeUnimported = true,
