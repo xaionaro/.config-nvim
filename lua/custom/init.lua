@@ -24,7 +24,7 @@ M.setup = function()
     local current_ft = vim.api.nvim_get_option_value("filetype", { buf = current_buf }) or ""
 
     -- If we are already in an interactive/input field, don't move focus
-    if current_ft == "AvanteInput" or current_ft == "toggleterm" then
+    if current_ft == "OpencodeInput" or current_ft == "toggleterm" then
       return true
     end
 
@@ -34,10 +34,10 @@ M.setup = function()
         local bufnr = vim.api.nvim_win_get_buf(win)
         local ft = vim.api.nvim_get_option_value("filetype", { buf = bufnr }) or ""
         local bt = vim.api.nvim_get_option_value("buftype", { buf = bufnr }) or ""
-        -- Main window: not a sidebar, not Avante, not a terminal, and is a normal file (bt == "")
+        -- Main window: not a sidebar, not Opencode, not a terminal, and is a normal file (bt == "")
         -- We allow ft == "" because a new empty buffer has no filetype yet.
         if
-          (ft == "" or (ft ~= "neo-tree" and ft ~= "Avante" and ft ~= "AvanteInput" and ft ~= "toggleterm"))
+          (ft == "" or (ft ~= "neo-tree" and ft ~= "Opencode" and ft ~= "OpencodeInput" and ft ~= "toggleterm"))
           and bt == ""
         then
           vim.api.nvim_set_current_win(win)
@@ -71,11 +71,11 @@ M.setup = function()
     vim.api.nvim_set_hl(0, "@lsp.typemod.typeParameter.definition.go", { fg = "#9CDCFE" })
     vim.api.nvim_set_hl(0, "@lsp.typemod.string.format.go", { fg = "#9CDCFE" })
 
-    -- Avante UI fixes (removing black strips and matching NvChad style)
-    vim.api.nvim_set_hl(0, "AvanteSidebarWinSeparator", { link = "WinSeparator" })
-    vim.api.nvim_set_hl(0, "AvanteSidebarWinHorizontalSeparator", { link = "WinSeparator" })
-    vim.api.nvim_set_hl(0, "AvantePromptInputBorder", { link = "WinSeparator" })
-    vim.api.nvim_set_hl(0, "AvanteSidebarNormal", { link = "Normal" })
+    -- Opencode UI fixes (removing black strips and matching NvChad style)
+    vim.api.nvim_set_hl(0, "OpencodeSidebarWinSeparator", { link = "WinSeparator" })
+    vim.api.nvim_set_hl(0, "OpencodeSidebarWinHorizontalSeparator", { link = "WinSeparator" })
+    vim.api.nvim_set_hl(0, "OpencodePromptInputBorder", { link = "WinSeparator" })
+    vim.api.nvim_set_hl(0, "OpencodeSidebarNormal", { link = "Normal" })
   end
 
   vim.api.nvim_create_autocmd({ "VimEnter", "ColorScheme", "BufEnter", "FileType" }, {
@@ -86,7 +86,7 @@ M.setup = function()
   })
   apply_highlights()
 
-  -- Auto-open Neo-tree and Avante on startup
+  -- Auto-open Neo-tree and Opencode on startup
   vim.api.nvim_create_autocmd("VimEnter", {
     group = vim.api.nvim_create_augroup("AutoOpenSidebars", { clear = true }),
     callback = function()
@@ -94,15 +94,15 @@ M.setup = function()
       local main_win = vim.api.nvim_get_current_win()
 
       -- Ensure plugins are loaded
-      require("lazy").load { plugins = { "neo-tree.nvim", "avante.nvim" } }
+      require("lazy").load { plugins = { "neo-tree.nvim", "opencode.nvim" } }
 
-      -- Monkeypatch Avante Sidebar to respect the focus setting synchronously
-      local ok_sidebar, Sidebar = pcall(require, "avante.sidebar")
+      -- Monkeypatch Opencode Sidebar to respect the focus setting synchronously
+      local ok_sidebar, Sidebar = pcall(require, "opencode.sidebar")
       if ok_sidebar and Sidebar.open then
         local old_open = Sidebar.open
         Sidebar.open = function(self, opts)
           local ret = old_open(self, opts)
-          local Config = require "avante.config"
+          local Config = require "opencode.config"
           if not Config.behaviour.auto_focus_sidebar then
             if self.code and self.code.winid and vim.api.nvim_win_is_valid(self.code.winid) then
               vim.api.nvim_set_current_win(self.code.winid)
@@ -114,8 +114,8 @@ M.setup = function()
         end
       end
 
-      -- Open Avante sidebar (on the right)
-      pcall(vim.cmd, "AvanteChat")
+      -- Open Opencode sidebar (on the right)
+      pcall(vim.cmd, "Opencode")
       if vim.api.nvim_win_is_valid(main_win) then
         vim.api.nvim_set_current_win(main_win)
       end
@@ -157,9 +157,9 @@ M.setup = function()
         if vim.api.nvim_win_is_valid(win) then
           local bufnr = vim.api.nvim_win_get_buf(win)
           local ft = vim.api.nvim_get_option_value("filetype", { buf = bufnr }) or ""
-          -- Only move focus if we land in a sidebar window (exactly 'neo-tree' or 'Avante').
-          -- Do NOT move focus if we land in an input field (like 'AvanteInput').
-          if ft == "neo-tree" or ft == "Avante" then
+          -- Only move focus if we land in a sidebar window (exactly 'neo-tree' or 'Opencode').
+          -- Do NOT move focus if we land in an input field (like 'OpencodeInput').
+          if ft == "neo-tree" or ft == "Opencode" then
             focus_main_window()
           end
         end
@@ -185,10 +185,10 @@ M.setup = function()
             local ft = vim.api.nvim_get_option_value("filetype", { buf = bufnr }) or ""
             local bt = vim.api.nvim_get_option_value("buftype", { buf = bufnr }) or ""
 
-            -- If it's a normal editor window (not a sidebar and not avante), keep nvim open.
+            -- If it's a normal editor window (not a sidebar and not opencode), keep nvim open.
             -- We consider it an editor window if it has a filetype AND it's not a sidebar.
             -- Or if it's an empty buffer that is NOT in a sidebar window.
-            if not sidebar_fts[ft] and not ft:lower():match "avante" then
+            if not sidebar_fts[ft] and not ft:lower():match "opencode" then
               -- If it's a normal buffer (bt == "") or a terminal/help that we want to keep, return.
               -- We only want to quit if ALL remaining windows are sidebars.
               if bt == "" or bt == "terminal" or bt == "help" then
