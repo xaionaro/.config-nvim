@@ -81,7 +81,7 @@ M.setup = function()
   })
 
   -- Auto-exit if only sidebars are left
-  vim.api.nvim_create_autocmd("BufEnter", {
+  vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter", "WinClosed" }, {
     group = vim.api.nvim_create_augroup("AutoQuit", { clear = true }),
     callback = function()
       vim.schedule(function()
@@ -96,12 +96,24 @@ M.setup = function()
           if vim.api.nvim_win_is_valid(win) then
             local bufnr = vim.api.nvim_win_get_buf(win)
             local ft = vim.api.nvim_get_option_value("filetype", { buf = bufnr }) or ""
+            local bt = vim.api.nvim_get_option_value("buftype", { buf = bufnr }) or ""
+
+            -- If it's a normal editor window (not a sidebar and not avante), keep nvim open.
+            -- We consider it an editor window if it has a filetype AND it's not a sidebar.
+            -- Or if it's an empty buffer that is NOT in a sidebar window.
             if not sidebar_fts[ft] and not ft:match "avante" then
-              return
+              -- If it's a normal buffer (bt == "") or a terminal/help that we want to keep, return.
+              -- We only want to quit if ALL remaining windows are sidebars.
+              if bt == "" or bt == "terminal" or bt == "help" then
+                return
+              end
             end
           end
         end
-        vim.cmd "qa"
+        -- If we are here, only sidebars or special windows are left.
+        if #wins > 0 then
+          vim.cmd "qa"
+        end
       end)
     end,
   })
