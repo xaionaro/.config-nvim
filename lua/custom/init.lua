@@ -93,8 +93,14 @@ M.setup = function()
       -- Capture the main window before opening sidebars
       local main_win = vim.api.nvim_get_current_win()
 
-      -- Ensure plugins are loaded
-      require("lazy").load { plugins = { "neo-tree.nvim", "opencode.nvim" } }
+      -- Ensure plugins are loaded (call via pcall to avoid noisy output and type issues)
+      pcall(function()
+        require("lazy").load { plugins = { "neo-tree.nvim", "opencode.nvim" } }
+      end)
+      -- Redraw to clear any transient messages so Neovim doesn't require an extra <Enter>
+      pcall(function()
+        vim.cmd "redraw"
+      end)
 
       -- Monkeypatch Opencode Sidebar to respect the focus setting synchronously
       local ok_sidebar, Sidebar = pcall(require, "opencode.sidebar")
@@ -115,13 +121,17 @@ M.setup = function()
       end
 
       -- Open Opencode sidebar (on the right)
-      pcall(vim.cmd, "Opencode")
+      pcall(function()
+        vim.cmd "Opencode"
+      end)
       if vim.api.nvim_win_is_valid(main_win) then
         vim.api.nvim_set_current_win(main_win)
       end
 
       -- Open Neo-tree (on the left)
-      pcall(vim.cmd, "Neotree show")
+      pcall(function()
+        vim.cmd "Neotree show"
+      end)
       if vim.api.nvim_win_is_valid(main_win) then
         vim.api.nvim_set_current_win(main_win)
       end
@@ -214,7 +224,7 @@ M.setup = function()
       end
       local ft = vim.api.nvim_get_option_value("filetype", { buf = 0 }) or ""
       -- Skip sidebars, opencode inputs and quickfix-like buffers
-      if ft == "neo-tree" or ft:lower():match("opencode") or ft == "qf" then
+      if ft == "neo-tree" or ft:lower():match "opencode" or ft == "qf" then
         return
       end
       local mark = vim.api.nvim_buf_get_mark(0, '"')
@@ -224,6 +234,6 @@ M.setup = function()
       end
     end,
   })
- end
+end
 
 return M

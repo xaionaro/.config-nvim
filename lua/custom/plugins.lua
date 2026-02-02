@@ -142,6 +142,12 @@ return {
         },
       },
       -- keymap and ui are now above; no duplicates
+      debug = {
+        enabled = false, -- Enable debug messages in the opencode output window
+        capture_streamed_events = false,
+        show_ids = true,
+        quick_chat = { keep_session = false, set_active_session = false },
+      },
     },
     dependencies = {
       "stevearc/dressing.nvim",
