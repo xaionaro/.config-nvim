@@ -14,8 +14,7 @@ M.setup = function()
     vim.api.nvim_set_hl(0, "Identifier", { fg = "#9cdcfe" })
     vim.api.nvim_set_hl(0, "@property", { fg = "#9cdcfe" })
     vim.api.nvim_set_hl(0, "@property.go", { fg = "#9cdcfe" })
-    vim.api.nvim_set_hl(0, "@variable.member.go", { fg = "#809090" })
-    vim.api.nvim_set_hl(0, "@module", { fg = "#808080" })
+    vim.api.nvim_set_hl(0, "@module", { fg = "#2EA990" })
     -- VS Code-ish type color
     vim.api.nvim_set_hl(0, "Type", { fg = "#4EC9B0" })
     vim.api.nvim_set_hl(0, "@keyword", { fg = "#C586C0" })
@@ -29,7 +28,10 @@ M.setup = function()
     vim.api.nvim_set_hl(0, "@lsp.type.namespace", { link = "@module" })
     vim.api.nvim_set_hl(0, "@lsp.type.module", { link = "@module" })
     vim.api.nvim_set_hl(0, "@lsp.type.namespace.go", { link = "@module" })
+    vim.api.nvim_set_hl(0, "@lsp.typemod.typeParameter.definition.go", { fg = "#9CDCFE" })
+    vim.api.nvim_set_hl(0, "@lsp.typemod.string.format.go", { fg = "#9CDCFE" })
   end
+
   vim.api.nvim_create_autocmd({ "VimEnter", "ColorScheme", "BufEnter", "FileType" }, {
     group = vim.api.nvim_create_augroup("CustomHighlights", { clear = true }),
     callback = function()
