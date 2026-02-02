@@ -20,7 +20,7 @@ return {
           require("99").fill_in_function_prompt()
         end,
         mode = { "n", "v" },
-        desc = "99: fill function (with prompt)",
+        desc = "LLM: fill function (with prompt)",
       },
       {
         "<leader>af",
@@ -28,7 +28,7 @@ return {
           require("99").fill_in_function()
         end,
         mode = "n",
-        desc = "99: fill function",
+        desc = "LLM: fill function",
       },
       {
         "<leader>av",
@@ -36,15 +36,18 @@ return {
           require("99").visual()
         end,
         mode = "v",
-        desc = "99: visual",
+        desc = "LLM: visual",
       },
       {
         "<leader>as",
         function()
           require("99").stop_all_requests()
+          pcall(function()
+            require("avante.api").stop()
+          end)
         end,
         mode = { "n", "v" },
-        desc = "99: stop all",
+        desc = "LLM: stop all",
       },
     },
     config = function()
@@ -265,7 +268,7 @@ return {
   },
 
   -- LSP support
-  { "williamboman/mason.nvim", opts = { ensure_installed = { "lua_ls", "stylua", "prettier", "buf" } } },
+  { "williamboman/mason.nvim", opts = { ensure_installed = { "lua_ls", "stylua", "prettier", "buf", "marksman", "gopls", "html-lsp", "css-lsp" } } },
 
   -- File Explorer
   {
