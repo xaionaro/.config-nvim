@@ -116,13 +116,46 @@ return {
     event = "VeryLazy",
     lazy = false,
     version = false,
-    opts = {},
+    opts = {
+      -- Reduce default opencode window width by 25% (from 0.25 -> 0.1875)
+      opencode_executable = "opencode",
+      window = { layout = "vertical", width = 0.1875 },
+      keymap = {
+        input_window = {
+          ["<tab>"] = { "switch_mode", mode = { "n", "i" } }, -- Use tab to switch between plan/build modes
+        },
+        output_window = {
+          ["<tab>"] = { "switch_mode", mode = { "n", "i" } }, -- Use tab to switch between plan/build modes
+        },
+      },
+      ui = {
+        output = {
+          tools = {
+            show_output = true, -- show diffs, tool outputs (file changes)
+            show_reasoning_output = true, -- show inner reasoning / dialog
+          },
+          rendering = {
+            -- keep default markdown renderer active so output buffers render nicely
+            on_data_rendered = nil,
+          },
+        },
+      },
+    },
     dependencies = {
       "stevearc/dressing.nvim",
       "nvim-lua/plenary.nvim",
       "MunifTanjim/nui.nvim",
       "hrsh7th/nvim-cmp",
       "nvim-tree/nvim-web-devicons",
+      -- Recommended renderer so opencode output (markdown/diffs) is nicely shown
+      {
+        "MeanderingProgrammer/render-markdown.nvim",
+        opts = {
+          anti_conceal = { enabled = false },
+          file_types = { 'markdown', 'opencode_output' },
+        },
+        ft = { 'markdown', 'Avante', 'copilot-chat', 'opencode_output' },
+      },
     },
   },
 
@@ -205,8 +238,23 @@ return {
     end,
   },
 
-  -- LSP support
-  { "williamboman/mason.nvim", opts = { ensure_installed = { "lua_ls", "stylua", "prettier", "buf", "marksman", "gopls", "html-lsp", "css-lsp" } } },
+  -- Mason core (installs language servers)
+  { "williamboman/mason.nvim", opts = {} },
+
+  -- Mason LSP bridge: ensure a list of servers are installed
+  {
+    "williamboman/mason-lspconfig.nvim",
+    -- list of servers we want available via mason
+    config = function()
+      local ensure = { "lua_ls", "stylua", "prettier", "buf", "marksman", "gopls", "html-lsp", "css-lsp" }
+      local ok, ml = pcall(require, "mason-lspconfig")
+      if not ok then
+        vim.notify("mason-lspconfig not available: ensure_installed skipped", vim.log.levels.WARN)
+        return
+      end
+      ml.setup { ensure_installed = ensure }
+    end,
+  },
 
   -- File Explorer
   {
