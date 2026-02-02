@@ -9,10 +9,10 @@ M.setup = function()
   map("i", "jk", "<ESC>")
 
   -- Move between windows using Shift + Arrow keys
-  map("n", "<S-Left>", "<C-w>h", { desc = "Move to left window" })
-  map("n", "<S-Right>", "<C-w>l", { desc = "Move to right window" })
-  map("n", "<S-Up>", "<C-w>k", { desc = "Move to upper window" })
-  map("n", "<S-Down>", "<C-w>j", { desc = "Move to lower window" })
+  map({ "n", "i", "v", "t" }, "<S-Left>", "<C-\\><C-N><C-w>h", { desc = "Move to left window" })
+  map({ "n", "i", "v", "t" }, "<S-Right>", "<C-\\><C-N><C-w>l", { desc = "Move to right window" })
+  map({ "n", "i", "v", "t" }, "<S-Up>", "<C-\\><C-N><C-w>k", { desc = "Move to upper window" })
+  map({ "n", "i", "v", "t" }, "<S-Down>", "<C-\\><C-N><C-w>j", { desc = "Move to lower window" })
 
   map({ "n", "v" }, "<F2>", vim.lsp.buf.rename, { desc = "Rename symbol" })
 
@@ -36,7 +36,10 @@ M.setup = function()
         local bt = vim.api.nvim_get_option_value("buftype", { buf = bufnr }) or ""
         -- Main window: not a sidebar, not Avante, not a terminal, and is a normal file (bt == "")
         -- We allow ft == "" because a new empty buffer has no filetype yet.
-        if (ft == "" or (ft ~= "neo-tree" and ft ~= "Avante" and ft ~= "AvanteInput" and ft ~= "toggleterm")) and bt == "" then
+        if
+          (ft == "" or (ft ~= "neo-tree" and ft ~= "Avante" and ft ~= "AvanteInput" and ft ~= "toggleterm"))
+          and bt == ""
+        then
           vim.api.nvim_set_current_win(win)
           vim.cmd "stopinsert"
           return true
@@ -99,7 +102,7 @@ M.setup = function()
         local old_open = Sidebar.open
         Sidebar.open = function(self, opts)
           local ret = old_open(self, opts)
-          local Config = require("avante.config")
+          local Config = require "avante.config"
           if not Config.behaviour.auto_focus_sidebar then
             if self.code and self.code.winid and vim.api.nvim_win_is_valid(self.code.winid) then
               vim.api.nvim_set_current_win(self.code.winid)
