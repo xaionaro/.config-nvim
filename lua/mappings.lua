@@ -7,3 +7,8 @@ local map = vim.keymap.set
 
 map("n", "<C-p>", "<cmd>Telescope frecency<CR>", { desc = "Telescope Frecency" })
 map("n", "<S-f>", "<cmd>Telescope live_grep<CR>", { desc = "Search by content (VS Code style)" })
+
+-- Map Ctrl-. to LSP code actions in normal and visual modes
+map({ "n", "v" }, "<C-.>", function()
+  vim.lsp.buf.code_action()
+end, { desc = "LSP Code Action" })
