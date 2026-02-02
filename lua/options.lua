@@ -1,4 +1,2 @@
 require "nvchad.options"
-
--- add yours here!
-vim.opt.whichwrap = ""
+require("custom").setup()
