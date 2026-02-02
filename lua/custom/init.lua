@@ -204,6 +204,26 @@ M.setup = function()
       end)
     end,
   })
-end
+
+  -- Restore last cursor position when reopening a file (skip special buffers)
+  vim.api.nvim_create_autocmd("BufReadPost", {
+    group = vim.api.nvim_create_augroup("RememberCursor", { clear = false }),
+    callback = function()
+      if vim.bo.buftype ~= "" then
+        return
+      end
+      local ft = vim.api.nvim_get_option_value("filetype", { buf = 0 }) or ""
+      -- Skip sidebars, opencode inputs and quickfix-like buffers
+      if ft == "neo-tree" or ft:lower():match("opencode") or ft == "qf" then
+        return
+      end
+      local mark = vim.api.nvim_buf_get_mark(0, '"')
+      local lnum = mark[1]
+      if lnum > 0 and lnum <= vim.api.nvim_buf_line_count(0) then
+        pcall(vim.api.nvim_win_set_cursor, 0, { lnum, mark[2] })
+      end
+    end,
+  })
+ end
 
 return M
