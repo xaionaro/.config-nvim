@@ -94,10 +94,9 @@ return {
   {
     "stevearc/conform.nvim",
     event = { "BufWritePre" },
-    opts = {
-      formatters_by_ft = { lua = { "stylua" }, proto = { "clang-format" } },
-      format_on_save = { timeout_ms = 1000, lsp_format = "fallback" },
-    },
+    opts = function()
+      return require "configs.conform"
+    end,
     config = function(_, opts)
       require("conform").setup(opts)
       vim.keymap.set({ "n", "v" }, "<leader>f", function() require("conform").format({ lsp_format = "fallback" }) end, { desc = "Format (conform)" })
@@ -105,7 +104,7 @@ return {
   },
 
   -- LSP support
-  { "williamboman/mason.nvim", opts = { ensure_installed = { "lua_ls" } } },
+  { "williamboman/mason.nvim", opts = { ensure_installed = { "lua_ls", "stylua" } } },
 
   -- File Explorer
   {
