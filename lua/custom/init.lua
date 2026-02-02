@@ -11,9 +11,9 @@ M.setup = function()
   -- Highlights (Ensuring VS Code-ish feel and Semantic Token visibility)
   local function apply_highlights()
     -- VS Code-ish identifier colors
-    vim.api.nvim_set_hl(0, "Identifier", { fg = "#9cdcfe" })
-    vim.api.nvim_set_hl(0, "@property", { fg = "#9cdcfe" })
-    vim.api.nvim_set_hl(0, "@property.go", { fg = "#9cdcfe" })
+    vim.api.nvim_set_hl(0, "Identifier", { fg = "#9CDCFE" })
+    vim.api.nvim_set_hl(0, "@property", { fg = "#9CDCFE" })
+    vim.api.nvim_set_hl(0, "@property.go", { fg = "#9CDCFE" })
     vim.api.nvim_set_hl(0, "@module", { fg = "#2EA990" })
     -- VS Code-ish type color
     vim.api.nvim_set_hl(0, "Type", { fg = "#4EC9B0" })
