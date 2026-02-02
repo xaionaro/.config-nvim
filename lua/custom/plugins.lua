@@ -208,7 +208,14 @@ return {
   -- Telescope Frecency (VS Code-like file jumping)
   {
     "nvim-telescope/telescope-frecency.nvim",
-    config = function()
+    lazy = false,
+    opts = {
+      default_workspace = "CWD",
+      show_unindexed = true,
+      db_safe_mode = false,
+    },
+    config = function(_, opts)
+      require("frecency").setup(opts)
       require("telescope").load_extension "frecency"
     end,
     dependencies = { "nvim-telescope/telescope.nvim" },
