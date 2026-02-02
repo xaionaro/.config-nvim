@@ -117,9 +117,9 @@ return {
     lazy = false,
     version = false,
     opts = {
-      -- Reduce default opencode window width by 25% (from 0.25 -> 0.1875)
       opencode_executable = "opencode",
-      window = { layout = "vertical", width = 0.1875 },
+      -- Hardcoded width for opencode UI
+      window = { layout = "vertical", width = 0.35 },
       keymap = {
         input_window = {
           ["<tab>"] = { "switch_mode", mode = { "n", "i" } }, -- Use tab to switch between plan/build modes
@@ -129,6 +129,7 @@ return {
         },
       },
       ui = {
+        window_width = 0.35,
         output = {
           tools = {
             show_output = true, -- show diffs, tool outputs (file changes)
@@ -140,6 +141,7 @@ return {
           },
         },
       },
+      -- keymap and ui are now above; no duplicates
     },
     dependencies = {
       "stevearc/dressing.nvim",
@@ -152,9 +154,9 @@ return {
         "MeanderingProgrammer/render-markdown.nvim",
         opts = {
           anti_conceal = { enabled = false },
-          file_types = { 'markdown', 'opencode_output' },
+          file_types = { "markdown", "opencode_output" },
         },
-        ft = { 'markdown', 'Avante', 'copilot-chat', 'opencode_output' },
+        ft = { "markdown", "Avante", "copilot-chat", "opencode_output" },
       },
     },
   },
@@ -228,12 +230,13 @@ return {
     "stevearc/conform.nvim",
     event = { "BufWritePre" },
     opts = function()
-      return require "configs.conform"
+      return require "configs.conform_opts"
     end,
     config = function(_, opts)
-      require("conform").setup(opts)
+      local conform = require "conform"
+      conform.setup(opts)
       vim.keymap.set({ "n", "v" }, "<leader>f", function()
-        require("conform").format { lsp_format = "fallback" }
+        conform.format { lsp_format = "fallback" }
       end, { desc = "Format (conform)" })
     end,
   },
