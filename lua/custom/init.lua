@@ -8,6 +8,12 @@ M.setup = function()
   map("n", ";", ":", { desc = "CMD enter command mode" })
   map("i", "jk", "<ESC>")
 
+  -- Move between windows using Shift + Arrow keys
+  map("n", "<S-Left>", "<C-w>h", { desc = "Move to left window" })
+  map("n", "<S-Right>", "<C-w>l", { desc = "Move to right window" })
+  map("n", "<S-Up>", "<C-w>k", { desc = "Move to upper window" })
+  map("n", "<S-Down>", "<C-w>j", { desc = "Move to lower window" })
+
   -- Highlights (Ensuring VS Code-ish feel and Semantic Token visibility)
   local function apply_highlights()
     -- VS Code-ish identifier colors
