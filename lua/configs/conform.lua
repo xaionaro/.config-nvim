@@ -1,7 +1,8 @@
 local options = {
   formatters_by_ft = {
     lua = { "stylua" },
-    proto = { "clang-format" },
+    proto = { "buf" },
+    markdown = { "prettier" },
     -- css = { "prettier" },
     -- html = { "prettier" },
   },

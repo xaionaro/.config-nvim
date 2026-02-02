@@ -133,6 +133,20 @@ return {
         auto_set_keymaps = true,
         auto_apply_diff_after_generation = true, -- YOLO mode: Apply changes immediately
         support_paste_from_clipboard = false,
+        auto_focus_sidebar = false, -- Prevent jumping to sidebar
+      },
+      windows = {
+        position = "right", -- sidebar position
+        width = 30, -- default % based on available width
+        sidebar_header = {
+          enabled = false, -- cleaner UI
+        },
+        ask = {
+          floating = false, -- Open 'AvanteAsk' in the sidebar
+          start_insert = true,
+          border = "rounded",
+          focus_on_apply = "ours",
+        },
       },
     },
     -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
@@ -212,7 +226,11 @@ return {
           local ctx = (mode == "v" or mode == "V" or mode == "\22") and "#selection " or "#buffer:active "
           vim.ui.input({ prompt = "CopilotChat (YOLO)> " }, function(input)
             if input and input ~= "" then
-              chat.ask(ctx .. "Execute this task immediately. Output only the final code blocks and assume I want them applied: " .. input)
+              chat.ask(
+                ctx
+                  .. "Execute this task immediately. Output only the final code blocks and assume I want them applied: "
+                  .. input
+              )
             end
           end)
         end,
@@ -247,7 +265,7 @@ return {
   },
 
   -- LSP support
-  { "williamboman/mason.nvim", opts = { ensure_installed = { "lua_ls", "stylua" } } },
+  { "williamboman/mason.nvim", opts = { ensure_installed = { "lua_ls", "stylua", "prettier", "buf" } } },
 
   -- File Explorer
   {
@@ -256,7 +274,7 @@ return {
     dependencies = { "nvim-lua/plenary.nvim", "MunifTanjim/nui.nvim", "nvim-tree/nvim-web-devicons" },
     keys = { { "<leader>e", "<Cmd>Neotree toggle<CR>", desc = "Explorer (Neo-tree)" } },
     opts = {
-      window = { width = 20 },
+      window = { width = 25 },
       filesystem = { filtered_items = { visible = true, hide_dotfiles = false, hide_gitignored = false } },
     },
   },

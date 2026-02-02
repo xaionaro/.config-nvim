@@ -52,28 +52,42 @@ M.setup = function()
   })
   apply_highlights()
 
-  -- Auto-open Neo-tree and CopilotChat on startup
+  -- Auto-open Neo-tree and Avante on startup
   vim.api.nvim_create_autocmd("VimEnter", {
     group = vim.api.nvim_create_augroup("AutoOpenSidebars", { clear = true }),
     callback = function()
-      -- Ensure plugins are loaded before calling their commands
+      -- Ensure plugins are loaded
       require("lazy").load { plugins = { "neo-tree.nvim", "avante.nvim" } }
 
-      -- Open Neo-tree
-      pcall(vim.cmd, "Neotree show")
-      -- Open Avante
+      -- Pre-focus a real editor window so Avante attaches to the right buffer
+      local wins = vim.api.nvim_list_wins()
+      for _, win in ipairs(wins) do
+        local bufnr = vim.api.nvim_win_get_buf(win)
+        local ft = vim.api.nvim_get_option_value("filetype", { buf = bufnr }) or ""
+        if ft ~= "neo-tree" and not ft:match "avante" then
+          vim.api.nvim_set_current_win(win)
+          break
+        end
+      end
+
+      -- Open Avante sidebar (on the right)
       pcall(vim.cmd, "AvanteChat")
 
-      -- Return focus to the editor
+      -- Open Neo-tree (on the left)
+      pcall(vim.cmd, "Neotree show")
+
+      -- Ensure focus is back in the main window
       vim.schedule(function()
         local wins = vim.api.nvim_list_wins()
         for _, win in ipairs(wins) do
-          local bufnr = vim.api.nvim_win_get_buf(win)
-          local ft = vim.api.nvim_get_option_value("filetype", { buf = bufnr }) or ""
-          if ft ~= "neo-tree" and not ft:match "avante" then
-            vim.api.nvim_set_current_win(win)
-            vim.cmd "stopinsert"
-            break
+          if vim.api.nvim_win_is_valid(win) then
+            local bufnr = vim.api.nvim_win_get_buf(win)
+            local ft = vim.api.nvim_get_option_value("filetype", { buf = bufnr }) or ""
+            if ft ~= "neo-tree" and not ft:match "avante" then
+              vim.api.nvim_set_current_win(win)
+              vim.cmd "stopinsert"
+              return
+            end
           end
         end
       end)
