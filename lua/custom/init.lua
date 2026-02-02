@@ -36,6 +36,12 @@ M.setup = function()
     vim.api.nvim_set_hl(0, "@lsp.type.namespace.go", { link = "@module" })
     vim.api.nvim_set_hl(0, "@lsp.typemod.typeParameter.definition.go", { fg = "#9CDCFE" })
     vim.api.nvim_set_hl(0, "@lsp.typemod.string.format.go", { fg = "#9CDCFE" })
+
+    -- Avante UI fixes (removing black strips and matching NvChad style)
+    vim.api.nvim_set_hl(0, "AvanteSidebarWinSeparator", { link = "WinSeparator" })
+    vim.api.nvim_set_hl(0, "AvanteSidebarWinHorizontalSeparator", { link = "WinSeparator" })
+    vim.api.nvim_set_hl(0, "AvantePromptInputBorder", { link = "WinSeparator" })
+    vim.api.nvim_set_hl(0, "AvanteSidebarNormal", { link = "Normal" })
   end
 
   vim.api.nvim_create_autocmd({ "VimEnter", "ColorScheme", "BufEnter", "FileType" }, {
@@ -63,7 +69,7 @@ M.setup = function()
         local wins = vim.api.nvim_list_wins()
         for _, win in ipairs(wins) do
           local bufnr = vim.api.nvim_win_get_buf(win)
-          local ft = vim.api.nvim_get_option_value("filetype", { buf = bufnr })
+          local ft = vim.api.nvim_get_option_value("filetype", { buf = bufnr }) or ""
           if ft ~= "neo-tree" and not ft:match "avante" then
             vim.api.nvim_set_current_win(win)
             vim.cmd "stopinsert"
@@ -78,17 +84,25 @@ M.setup = function()
   vim.api.nvim_create_autocmd("BufEnter", {
     group = vim.api.nvim_create_augroup("AutoQuit", { clear = true }),
     callback = function()
-      local wins = vim.api.nvim_list_wins()
-      local sidebar_fts = { ["neo-tree"] = true }
+      vim.schedule(function()
+        local wins = vim.api.nvim_list_wins()
+        local sidebar_fts = {
+          ["neo-tree"] = true,
+          ["qf"] = true,
+          ["notify"] = true,
+        }
 
-      for _, win in ipairs(wins) do
-        local bufnr = vim.api.nvim_win_get_buf(win)
-        local ft = vim.api.nvim_get_option_value("filetype", { buf = bufnr })
-        if not sidebar_fts[ft] and not ft:match "avante" then
-          return
+        for _, win in ipairs(wins) do
+          if vim.api.nvim_win_is_valid(win) then
+            local bufnr = vim.api.nvim_win_get_buf(win)
+            local ft = vim.api.nvim_get_option_value("filetype", { buf = bufnr }) or ""
+            if not sidebar_fts[ft] and not ft:match "avante" then
+              return
+            end
+          end
         end
-      end
-      vim.cmd "qa"
+        vim.cmd "qa"
+      end)
     end,
   })
 end
