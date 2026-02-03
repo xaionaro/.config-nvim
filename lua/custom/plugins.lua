@@ -119,7 +119,7 @@ return {
     opts = {
       opencode_executable = "opencode",
       -- Hardcoded width for opencode UI
-      window = { layout = "vertical", width = 0.35 },
+      window = { layout = "vertical", width = 0.15 },
       keymap = {
         input_window = {
           ["<tab>"] = { "switch_mode", mode = { "n", "i" } }, -- Use tab to switch between plan/build modes
@@ -129,7 +129,7 @@ return {
         },
       },
       ui = {
-        window_width = 0.35,
+        window_width = 0.15,
         output = {
           tools = {
             show_output = true, -- show diffs, tool outputs (file changes)

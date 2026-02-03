@@ -252,31 +252,42 @@ local function install_lazy_reloader_workaround()
 
   -- Install global output wrappers that can be toggled during reloads.
   -- We wrap once here so asynchronous notifications printed later by lazy's
-  -- reload process are also suppressed while we want them hidden.
-  local suppress_output = false
-  local _out_write = vim.api.nvim_out_write
-  local _err_writeln = vim.api.nvim_err_writeln
-  local _echo = vim.api.nvim_echo
-  vim.api.nvim_out_write = function(...)
-    if suppress_output then
-      return
+  -- reload process are also suppressed while we want them hidden. Guard the
+  -- wrapping so reloading this file multiple times (or running this twice)
+  -- doesn't reassign the same fields and avoids duplicate-field diagnostics.
+  if not vim.g._custom_wrapped_output then
+    local suppress_output = false
+    local _out_write = vim.api.nvim_out_write
+    local _err_writeln = vim.api.nvim_err_writeln
+    local _echo = vim.api.nvim_echo
+    vim.api.nvim_out_write = function(...)
+      if suppress_output then
+        return
+      end
+      return _out_write(...)
     end
-    return _out_write(...)
-  end
-  vim.api.nvim_err_writeln = function(...)
-    if suppress_output then
-      return
+    vim.api.nvim_err_writeln = function(...)
+      if suppress_output then
+        return
+      end
+      return _err_writeln(...)
     end
-    return _err_writeln(...)
-  end
-  vim.api.nvim_echo = function(...)
-    if suppress_output then
-      return
+    vim.api.nvim_echo = function(...)
+      if suppress_output then
+        return
+      end
+      return _echo(...)
     end
-    return _echo(...)
+    -- expose the suppress flag for the rest of this function via a local
+    -- upvalue by attaching it to the module-global marker table so the
+    -- reloader can toggle it without creating a new wrapper.
+    vim.g._custom_wrapped_output = { suppress = suppress_output }
   end
 
-  local orig_reload = reloader.reload
+  -- Only wrap reload once to avoid duplicate-field diagnostics and double
+  -- wrapping when this file is sourced multiple times.
+  if not reloader._custom_wrapped_reload then
+    local orig_reload = reloader.reload
   -- Override lazy's Util.warn to avoid multi-line printing which triggers the
   -- "Press ENTER" pager. We keep a reference to the original for safety.
   local ok_util, Util = pcall(require, "lazy.util")
@@ -300,18 +311,23 @@ local function install_lazy_reloader_workaround()
       end)
     end
   end
-  reloader.reload = function(changes)
-    -- Suppress output while original reload runs. Use the wrappers above so
-    -- any async printing spawned by lazy during reload is also suppressed.
-    suppress_output = true
-    local ok2, err = pcall(orig_reload, changes)
+    reloader.reload = function(changes)
+      -- Suppress output while original reload runs. Use the wrappers above so
+      -- any async printing spawned by lazy during reload is also suppressed.
+      if vim.g._custom_wrapped_output then
+        -- flip the suppress flag stored in the marker table
+        vim.g._custom_wrapped_output.suppress = true
+      end
+      local ok2, err = pcall(orig_reload, changes)
     -- Keep suppression enabled for a short time so any async printing
     -- scheduled by lazy during reload is suppressed. Use a short deferred
     -- timeout to ensure the scheduled lazy.notify runs before we re-enable
     -- output. 30ms is conservative but still unnoticeable.
-    pcall(vim.defer_fn, function()
-      suppress_output = false
-    end, 30)
+      pcall(vim.defer_fn, function()
+        if vim.g._custom_wrapped_output then
+          vim.g._custom_wrapped_output.suppress = false
+        end
+      end, 30)
 
     -- Schedule a safe, non-blocking notify and persist full details to state.
     -- We use vim.schedule to ensure this runs outside fast event contexts.
@@ -339,9 +355,11 @@ local function install_lazy_reloader_workaround()
       end)
     end)
 
-    if not ok2 then
-      error(err)
+      if not ok2 then
+        error(err)
+      end
     end
+    reloader._custom_wrapped_reload = true
   end
 end
 
