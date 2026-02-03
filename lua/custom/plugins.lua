@@ -333,4 +333,47 @@ return {
       }
     end,
   },
+
+  -- Breadcrumbs / statusline helper
+  {
+    "utilyre/barbecue.nvim",
+    event = "VeryLazy",
+    dependencies = {
+      "nvim-tree/nvim-web-devicons",
+      {
+        "SmiteshP/nvim-navic",
+        config = function()
+          local ok, navic = pcall(require, "nvim-navic")
+          if not ok then
+            return
+          end
+          navic.setup {}
+
+          -- Attach navic to buffers when LSP attaches (if server supports documentSymbolProvider)
+          vim.api.nvim_create_autocmd("LspAttach", {
+            callback = function(args)
+              local client = vim.lsp.get_client_by_id(args.data.client_id)
+              if client and client.server_capabilities and client.server_capabilities.documentSymbolProvider then
+                pcall(function()
+                  navic.attach(client, args.buf)
+                end)
+              end
+            end,
+          })
+        end,
+      },
+    },
+    config = function()
+      require("barbecue").setup {
+        -- show file path and LSP breadcrumbs when available
+        create_autocmd = false, -- we manage updates via navic / LspAttach above
+      }
+      -- Create lightweight autocommands to update barbecue on relevant events
+      vim.api.nvim_create_autocmd({ "BufWinEnter", "BufWritePost", "CursorHold", "LspAttach" }, {
+        callback = function()
+          pcall(require("barbecue.ui").update)
+        end,
+      })
+    end,
+  },
 }
