@@ -234,6 +234,36 @@ M.setup = function()
       end
     end,
   })
+
+  -- Ensure command-line commands entered while a sidebar is focused act on the
+  -- main editor window. This reroutes ':' (and mapped ';') so that commands
+  -- like `:q` will affect the main window (and exit nvim) instead of closing
+  -- the sidebar. We avoid rerouting interactive inputs like Opencode's prompt
+  -- and terminals.
+  vim.api.nvim_create_autocmd("CmdlineEnter", {
+    group = vim.api.nvim_create_augroup("CmdlineFocusMain", { clear = true }),
+    callback = function()
+      local win = vim.api.nvim_get_current_win()
+      if not vim.api.nvim_win_is_valid(win) then
+        return
+      end
+      local bufnr = vim.api.nvim_win_get_buf(win)
+      local ft = vim.api.nvim_get_option_value("filetype", { buf = bufnr }) or ""
+
+      -- Don't reroute interactive plugin inputs or terminals
+      if ft == "OpencodeInput" or ft == "toggleterm" then
+        return
+      end
+
+      -- If the commandline was opened from a sidebar (neo-tree / opencode / qf),
+      -- move focus back to a normal editor window so the command acts there.
+      if ft == "neo-tree" or ft == "qf" or ft:lower():match("opencode") then
+        -- Do this synchronously so the command will operate on the main window.
+        focus_main_window()
+      end
+    end,
+  })
+
 end
 
 -- Install lazy.nvim reloader workaround to avoid blocking "Press ENTER" prompts.
