@@ -259,7 +259,7 @@ return {
     "williamboman/mason-lspconfig.nvim",
     -- list of servers we want available via mason
     config = function()
-      local ensure = { "lua_ls", "stylua", "prettier", "buf", "marksman", "gopls", "html-lsp", "css-lsp" }
+      local ensure = { "lua_ls", "stylua", "prettier", "buf", "marksman", "gopls", "html-lsp", "css-lsp", "bashls" }
       local ok, ml = pcall(require, "mason-lspconfig")
       if not ok then
         vim.notify("mason-lspconfig not available: ensure_installed skipped", vim.log.levels.WARN)
