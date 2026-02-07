@@ -37,8 +37,8 @@ M.setup = function()
         -- Main window: not a sidebar, not Opencode, not a terminal, and is a normal file (bt == "")
         -- We allow ft == "" because a new empty buffer has no filetype yet.
         if
-          (ft == "" or (ft ~= "neo-tree" and ft ~= "Opencode" and ft ~= "OpencodeInput" and ft ~= "toggleterm"))
-          and bt == ""
+            (ft == "" or (ft ~= "neo-tree" and ft ~= "Opencode" and ft ~= "OpencodeInput" and ft ~= "toggleterm"))
+            and bt == ""
         then
           vim.api.nvim_set_current_win(win)
           vim.cmd "stopinsert"
@@ -77,6 +77,7 @@ M.setup = function()
     vim.api.nvim_set_hl(0, "OpencodePromptInputBorder", { link = "WinSeparator" })
     vim.api.nvim_set_hl(0, "OpencodeSidebarNormal", { link = "Normal" })
 
+    vim.api.nvim_set_hl(0, "NeoTreeNormal", { bg = "#181818" })
     vim.api.nvim_set_hl(0, "NeoTreeNormalNC", { bg = "#121212" })
   end
 
@@ -265,7 +266,6 @@ M.setup = function()
       end
     end,
   })
-
 end
 
 -- Install lazy.nvim reloader workaround to avoid blocking "Press ENTER" prompts.
@@ -320,29 +320,31 @@ local function install_lazy_reloader_workaround()
   -- wrapping when this file is sourced multiple times.
   if not reloader._custom_wrapped_reload then
     local orig_reload = reloader.reload
-  -- Override lazy's Util.warn to avoid multi-line printing which triggers the
-  -- "Press ENTER" pager. We keep a reference to the original for safety.
-  local ok_util, Util = pcall(require, "lazy.util")
-  if ok_util and Util and type(Util.warn) == "function" then
-    local orig_warn = Util.warn
-    Util.warn = function(msg, opts)
-      pcall(function()
-        -- Normalize message to string
-        local text = type(msg) == "table" and table.concat(msg, "\n") or tostring(msg)
-        -- Append full details to lazy state file for inspection
-        local statefile = (core_config.options and core_config.options.state) or (vim.fn.stdpath("state") .. "/lazy/state.json")
-        local fd = io.open(statefile, "a")
-        if fd then
-          fd:write("\n" .. text .. "\n")
-          fd:close()
-        end
-        -- Show a concise, single-line notify (non-blocking)
-        vim.schedule(function()
-          pcall(vim.notify, (type(msg) == "table" and (msg[1] or "Config change") or text), vim.log.levels.INFO, { title = "lazy.nvim" })
+    -- Override lazy's Util.warn to avoid multi-line printing which triggers the
+    -- "Press ENTER" pager. We keep a reference to the original for safety.
+    local ok_util, Util = pcall(require, "lazy.util")
+    if ok_util and Util and type(Util.warn) == "function" then
+      local orig_warn = Util.warn
+      Util.warn = function(msg, opts)
+        pcall(function()
+          -- Normalize message to string
+          local text = type(msg) == "table" and table.concat(msg, "\n") or tostring(msg)
+          -- Append full details to lazy state file for inspection
+          local statefile = (core_config.options and core_config.options.state) or
+              (vim.fn.stdpath("state") .. "/lazy/state.json")
+          local fd = io.open(statefile, "a")
+          if fd then
+            fd:write("\n" .. text .. "\n")
+            fd:close()
+          end
+          -- Show a concise, single-line notify (non-blocking)
+          vim.schedule(function()
+            pcall(vim.notify, (type(msg) == "table" and (msg[1] or "Config change") or text), vim.log.levels.INFO,
+              { title = "lazy.nvim" })
+          end)
         end)
-      end)
+      end
     end
-  end
     reloader.reload = function(changes)
       -- Suppress output while original reload runs. Use the wrappers above so
       -- any async printing spawned by lazy during reload is also suppressed.
@@ -351,41 +353,42 @@ local function install_lazy_reloader_workaround()
         vim.g._custom_wrapped_output.suppress = true
       end
       local ok2, err = pcall(orig_reload, changes)
-    -- Keep suppression enabled for a short time so any async printing
-    -- scheduled by lazy during reload is suppressed. Use a short deferred
-    -- timeout to ensure the scheduled lazy.notify runs before we re-enable
-    -- output. 30ms is conservative but still unnoticeable.
+      -- Keep suppression enabled for a short time so any async printing
+      -- scheduled by lazy during reload is suppressed. Use a short deferred
+      -- timeout to ensure the scheduled lazy.notify runs before we re-enable
+      -- output. 30ms is conservative but still unnoticeable.
       pcall(vim.defer_fn, function()
         if vim.g._custom_wrapped_output then
           vim.g._custom_wrapped_output.suppress = false
         end
       end, 30)
 
-    -- Schedule a safe, non-blocking notify and persist full details to state.
-    -- We use vim.schedule to ensure this runs outside fast event contexts.
-    vim.schedule(function()
-      local n = 0
-      if type(changes) == "table" then
-        n = #changes
-      end
-      local summary = "Config change detected. Reloading... (" .. n .. " change" .. (n == 1 and "" or "s") .. ")"
-      pcall(vim.notify, summary, vim.log.levels.INFO, { title = "lazy.nvim" })
+      -- Schedule a safe, non-blocking notify and persist full details to state.
+      -- We use vim.schedule to ensure this runs outside fast event contexts.
+      vim.schedule(function()
+        local n = 0
+        if type(changes) == "table" then
+          n = #changes
+        end
+        local summary = "Config change detected. Reloading... (" .. n .. " change" .. (n == 1 and "" or "s") .. ")"
+        pcall(vim.notify, summary, vim.log.levels.INFO, { title = "lazy.nvim" })
 
-      pcall(function()
-        local statefile = (core_config.options and core_config.options.state) or (vim.fn.stdpath("state") .. "/lazy/state.json")
-        local fd = io.open(statefile, "a")
-        if not fd then
-          return
-        end
-        fd:write("\n# Config Change Detected. Reloading...\n")
-        for _, change in ipairs(changes or {}) do
-          local what = tostring(change.what or "")
-          local file = tostring(change.file or "")
-          fd:write("- " .. what .. ": " .. vim.fn.fnamemodify(file, ":p:~:.") .. "\n")
-        end
-        fd:close()
+        pcall(function()
+          local statefile = (core_config.options and core_config.options.state) or
+              (vim.fn.stdpath("state") .. "/lazy/state.json")
+          local fd = io.open(statefile, "a")
+          if not fd then
+            return
+          end
+          fd:write("\n# Config Change Detected. Reloading...\n")
+          for _, change in ipairs(changes or {}) do
+            local what = tostring(change.what or "")
+            local file = tostring(change.file or "")
+            fd:write("- " .. what .. ": " .. vim.fn.fnamemodify(file, ":p:~:.") .. "\n")
+          end
+          fd:close()
+        end)
       end)
-    end)
 
       if not ok2 then
         error(err)
@@ -411,7 +414,8 @@ vim.api.nvim_create_autocmd("BufWritePost", {
       pcall(vim.api.nvim_echo, { { summary } }, false, {})
       pcall(function()
         local ok, core = pcall(require, "lazy.core.config")
-        local statefile = (ok and core and core.options and core.options.state) or (vim.fn.stdpath("state") .. "/lazy/state.json")
+        local statefile = (ok and core and core.options and core.options.state) or
+            (vim.fn.stdpath("state") .. "/lazy/state.json")
         local fd = io.open(statefile, "a")
         if fd then
           fd:write("\n# Config Change Detected (autocmd)\n- changed: lua/custom/plugins.lua\n")
