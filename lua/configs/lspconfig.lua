@@ -10,7 +10,7 @@ vim.lsp.config("*", {
   semantic_tokens = true,
 })
 
-local servers = { "html", "cssls", "gopls", "marksman" }
+local servers = { "html", "cssls", "gopls", "marksman", "qmlls" }
 
 for _, name in ipairs(servers) do
   -- Load custom options from lua/custom/lsp/<name>.lua
