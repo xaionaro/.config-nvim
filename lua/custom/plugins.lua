@@ -248,11 +248,59 @@ return {
       vim.keymap.set({ "n", "v" }, "<leader>f", function()
         conform.format { lsp_format = "fallback" }
       end, { desc = "Format (conform)" })
+
+      -- Global auto-format on save: call conform.format for every BufWritePre.
+      -- We wrap in pcall to avoid any runtime errors preventing writes.
+      if opts and opts.format_on_save and opts.format_on_save.enabled then
+        vim.api.nvim_create_autocmd("BufWritePre", {
+          pattern = "*",
+          callback = function(event)
+            local bufnr = event.buf or vim.api.nvim_get_current_buf()
+            -- Don't attempt to format non-file buffers
+            local bt = vim.api.nvim_buf_get_option(bufnr, "buftype")
+            if bt ~= "" and bt ~= "acwrite" then
+              return
+            end
+            pcall(function()
+              require("conform").format { lsp_format = "fallback", bufnr = bufnr }
+            end)
+          end,
+        })
+      end
     end,
   },
 
   -- Mason core (installs language servers)
   { "williamboman/mason.nvim", opts = {} },
+
+  -- Ensure common formatters/linters are installed via Mason
+  {
+    "WhoIsSethDaniel/mason-tool-installer.nvim",
+    -- Run after mason.nvim is available
+    dependencies = { "williamboman/mason.nvim" },
+    config = function()
+      local ok, mti = pcall(require, "mason-tool-installer")
+      if not ok then
+        vim.notify("mason-tool-installer not available: ensure_installed skipped", vim.log.levels.WARN)
+        return
+      end
+
+      mti.setup {
+        ensure_installed = {
+          -- formatters used by conform
+          "shfmt",
+          "prettier",
+          "stylua",
+          "black",
+          "gofumpt",
+          "rustfmt",
+          "clang-format",
+          "buf",
+        },
+        auto_update = false,
+      }
+    end,
+  },
 
   -- Mason LSP bridge: ensure a list of servers are installed
   {
