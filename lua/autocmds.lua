@@ -13,3 +13,26 @@ vim.api.nvim_create_autocmd("FileChangedShellPost", {
     vim.notify("File changed on disk. Buffer reloaded.", vim.log.levels.INFO)
   end,
 })
+
+-- Auto-enter insert mode when focusing opencode input
+-- Also auto-focus input when focusing output (logs)
+vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter" }, {
+  desc = "Opencode focus management",
+  callback = function()
+    local ft = vim.bo.filetype
+    if ft == "opencode" then
+      vim.schedule(function()
+        vim.cmd "startinsert!"
+      end)
+    elseif ft == "opencode_output" then
+      -- If focusing output, find input window and focus it
+      for _, win in ipairs(vim.api.nvim_list_wins()) do
+        local buf = vim.api.nvim_win_get_buf(win)
+        if vim.api.nvim_get_option_value("filetype", { buf = buf }) == "opencode" then
+          vim.api.nvim_set_current_win(win)
+          break
+        end
+      end
+    end
+  end,
+})
