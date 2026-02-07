@@ -76,6 +76,8 @@ M.setup = function()
     vim.api.nvim_set_hl(0, "OpencodeSidebarWinHorizontalSeparator", { link = "WinSeparator" })
     vim.api.nvim_set_hl(0, "OpencodePromptInputBorder", { link = "WinSeparator" })
     vim.api.nvim_set_hl(0, "OpencodeSidebarNormal", { link = "Normal" })
+
+    vim.api.nvim_set_hl(0, "NeoTreeNormalNC", { bg = "#121212" })
   end
 
   vim.api.nvim_create_autocmd({ "VimEnter", "ColorScheme", "BufEnter", "FileType" }, {

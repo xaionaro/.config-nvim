@@ -8,7 +8,7 @@ local M = {}
 M.base46 = {
   theme = "vscode_dark",
   hl_override = {
-    Normal = { bg = "#191919" },
+    Normal = { bg = "#0A0A0A" },
   },
 }
 
