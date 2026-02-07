@@ -319,14 +319,50 @@ return {
 
   -- File Explorer
   {
-    "nvim-neo-tree/neo-tree.nvim",
-    branch = "v3.x",
-    dependencies = { "nvim-lua/plenary.nvim", "MunifTanjim/nui.nvim", "nvim-tree/nvim-web-devicons" },
-    keys = { { "<leader>e", "<Cmd>Neotree toggle<CR>", desc = "Explorer (Neo-tree)" } },
+    "nvim-tree/nvim-tree.lua",
+    cmd = { "NvimTreeToggle", "NvimTreeFocus", "NvimTreeOpen" },
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    keys = { { "<leader>e", "<Cmd>NvimTreeToggle<CR>", desc = "Explorer (NvimTree)" } },
     opts = {
-      window = { width = 25 },
-      filesystem = { filtered_items = { visible = true, hide_dotfiles = false, hide_gitignored = false } },
+      view = {
+        width = 25,
+        side = "left",
+      },
+      renderer = {
+        icons = {
+          show = {
+            file = true,
+            folder = true,
+            folder_arrow = true,
+            git = true,
+          },
+        },
+      },
+      filters = {
+        dotfiles = false,
+        git_ignored = false,
+      },
+      git = {
+        enable = true,
+        ignore = false,
+      },
+      filesystem_watchers = {
+        enable = true,
+        debounce_delay = 50,
+      },
+      update_focused_file = {
+        enable = true,
+        update_cwd = true,
+      },
+      actions = {
+        open_file = {
+          quit_on_open = false,
+        },
+      },
     },
+    config = function(_, opts)
+      require("nvim-tree").setup(opts)
+    end,
   },
 
   -- Telescope Frecency (VS Code-like file jumping)

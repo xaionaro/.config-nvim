@@ -37,7 +37,7 @@ M.setup = function()
         -- Main window: not a sidebar, not Opencode, not a terminal, and is a normal file (bt == "")
         -- We allow ft == "" because a new empty buffer has no filetype yet.
         if
-            (ft == "" or (ft ~= "neo-tree" and ft ~= "Opencode" and ft ~= "OpencodeInput" and ft ~= "toggleterm"))
+            (ft == "" or (ft ~= "NvimTree" and ft ~= "Opencode" and ft ~= "OpencodeInput" and ft ~= "toggleterm"))
             and bt == ""
         then
           vim.api.nvim_set_current_win(win)
@@ -77,8 +77,8 @@ M.setup = function()
     vim.api.nvim_set_hl(0, "OpencodePromptInputBorder", { link = "WinSeparator" })
     vim.api.nvim_set_hl(0, "OpencodeSidebarNormal", { link = "Normal" })
 
-    vim.api.nvim_set_hl(0, "NeoTreeNormal", { bg = "#181818" })
-    vim.api.nvim_set_hl(0, "NeoTreeNormalNC", { bg = "#121212" })
+    vim.api.nvim_set_hl(0, "NvimTreeNormal", { bg = "#181818" })
+    vim.api.nvim_set_hl(0, "NvimTreeNormalNC", { bg = "#121212" })
   end
 
   vim.api.nvim_create_autocmd({ "VimEnter", "ColorScheme", "BufEnter", "FileType" }, {
@@ -89,7 +89,7 @@ M.setup = function()
   })
   apply_highlights()
 
-  -- Auto-open Neo-tree and Opencode on startup
+  -- Auto-open NvimTree and Opencode on startup
   vim.api.nvim_create_autocmd("VimEnter", {
     group = vim.api.nvim_create_augroup("AutoOpenSidebars", { clear = true }),
     callback = function()
@@ -98,7 +98,7 @@ M.setup = function()
 
       -- Ensure plugins are loaded (call via pcall to avoid noisy output and type issues)
       pcall(function()
-        require("lazy").load { plugins = { "neo-tree.nvim", "opencode.nvim" } }
+        require("lazy").load { plugins = { "nvim-tree.lua", "opencode.nvim" } }
       end)
       -- Redraw to clear any transient messages so Neovim doesn't require an extra <Enter>
       pcall(function()
@@ -131,9 +131,9 @@ M.setup = function()
         vim.api.nvim_set_current_win(main_win)
       end
 
-      -- Open Neo-tree (on the left)
+      -- Open NvimTree (on the left)
       pcall(function()
-        vim.cmd "Neotree show"
+        vim.cmd "NvimTreeOpen"
       end)
       if vim.api.nvim_win_is_valid(main_win) then
         vim.api.nvim_set_current_win(main_win)
@@ -170,9 +170,9 @@ M.setup = function()
         if vim.api.nvim_win_is_valid(win) then
           local bufnr = vim.api.nvim_win_get_buf(win)
           local ft = vim.api.nvim_get_option_value("filetype", { buf = bufnr }) or ""
-          -- Only move focus if we land in a sidebar window (exactly 'neo-tree' or 'Opencode').
+          -- Only move focus if we land in a sidebar window (exactly 'NvimTree' or 'Opencode').
           -- Do NOT move focus if we land in an input field (like 'OpencodeInput').
-          if ft == "neo-tree" or ft == "Opencode" then
+          if ft == "NvimTree" or ft == "Opencode" then
             focus_main_window()
           end
         end
@@ -187,7 +187,7 @@ M.setup = function()
       vim.schedule(function()
         local wins = vim.api.nvim_list_wins()
         local sidebar_fts = {
-          ["neo-tree"] = true,
+          ["NvimTree"] = true,
           ["qf"] = true,
           ["notify"] = true,
         }
@@ -227,7 +227,7 @@ M.setup = function()
       end
       local ft = vim.api.nvim_get_option_value("filetype", { buf = 0 }) or ""
       -- Skip sidebars, opencode inputs and quickfix-like buffers
-      if ft == "neo-tree" or ft:lower():match "opencode" or ft == "qf" then
+      if ft == "NvimTree" or ft:lower():match "opencode" or ft == "qf" then
         return
       end
       local mark = vim.api.nvim_buf_get_mark(0, '"')
@@ -258,9 +258,9 @@ M.setup = function()
         return
       end
 
-      -- If the commandline was opened from a sidebar (neo-tree / opencode / qf),
+      -- If the commandline was opened from a sidebar (NvimTree / opencode / qf),
       -- move focus back to a normal editor window so the command acts there.
-      if ft == "neo-tree" or ft == "qf" or ft:lower():match("opencode") then
+      if ft == "NvimTree" or ft == "qf" or ft:lower():match("opencode") then
         -- Do this synchronously so the command will operate on the main window.
         focus_main_window()
       end
