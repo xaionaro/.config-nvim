@@ -92,6 +92,20 @@ return {
     end,
   },
 
+  -- Git integration
+  {
+    "lewis6991/gitsigns.nvim",
+    opts = {
+      signs = {
+        add = { text = "┃" },
+        change = { text = "┃" },
+        delete = { text = "┃" },
+        topdelete = { text = "┃" },
+        changedelete = { text = "┃" },
+      },
+    },
+  },
+
   -- Tabs / Bufferline
   {
     "romgrk/barbar.nvim",
@@ -446,7 +460,11 @@ return {
         },
       }
       -- Enable signs for diagnostics, search results, and git changes
-      require("scrollview.contrib.gitsigns").setup()
+      require("scrollview.contrib.gitsigns").setup {
+        add_symbol = "┃",
+        change_symbol = "┃",
+        delete_symbol = "┃",
+      }
       -- Internal search and diagnostic signs are usually enabled via setup,
       -- but we can explicitly refresh them.
     end,
