@@ -95,11 +95,14 @@ return {
   -- Tabs / Bufferline
   {
     "romgrk/barbar.nvim",
+    lazy = false,
     dependencies = { "lewis6991/gitsigns.nvim", "nvim-tree/nvim-web-devicons" },
     init = function()
       vim.g.barbar_auto_setup = false
     end,
-    opts = {},
+    opts = {
+      clickable = true,
+    },
     keys = {
       { "<C-,>", "<Cmd>BufferPrevious<CR>", desc = "Prev buffer tab" },
       { "<C-.>", "<Cmd>BufferNext<CR>", desc = "Next buffer tab" },
