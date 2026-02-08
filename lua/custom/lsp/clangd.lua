@@ -12,6 +12,9 @@ return {
     "--fallback-style=llvm",
   },
   filetypes = { "c", "cpp", "objc", "objcpp", "cuda" },
+  root_dir = function(fname)
+    return vim.fs.root(fname, { "compile_commands.json", "compile_flags.txt", ".clangd", ".git" })
+  end,
   init_options = {
     usePlaceholders = true,
     completeUnimported = true,
