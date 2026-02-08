@@ -1,6 +1,30 @@
 -- Consolidated custom plugin configurations.
 return {
+  -- Treesitter for advanced syntax highlighting
+  {
+    "nvim-treesitter/nvim-treesitter",
+    lazy = false,
+    build = ":TSUpdate",
+    opts = {
+      ensure_installed = { "lua", "vim", "vimdoc", "bash", "json", "markdown", "go" },
+      highlight = { enable = true },
+    },
+    config = function(_, opts)
+      local ts = require "nvim-treesitter"
+      ts.setup(opts)
+
+      if opts.highlight and opts.highlight.enable then
+        vim.api.nvim_create_autocmd("FileType", {
+          callback = function()
+            vim.treesitter.start()
+          end,
+        })
+      end
+    end,
+  },
+
   -- Core LSP Support (Required for default server configs)
+
   {
     "neovim/nvim-lspconfig",
     lazy = false,

@@ -13,6 +13,10 @@ return {
 
   performance = {
     rtp = {
+      paths = {
+        "/usr/lib/x86_64-linux-gnu/nvim",
+        vim.fn.stdpath "data" .. "/site",
+      },
       disabled_plugins = {
         "2html_plugin",
         "tohtml",
