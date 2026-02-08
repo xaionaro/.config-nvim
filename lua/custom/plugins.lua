@@ -10,12 +10,7 @@ return {
       highlight = { enable = true },
     },
     config = function(_, opts)
-      local ts = require "nvim-treesitter"
-      ts.setup(opts)
-
-      if opts.ensure_installed then
-        ts.install(opts.ensure_installed)
-      end
+      require("nvim-treesitter.configs").setup(opts)
 
       if opts.highlight and opts.highlight.enable then
         vim.api.nvim_create_autocmd("FileType", {
