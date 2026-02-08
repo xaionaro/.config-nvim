@@ -105,18 +105,18 @@ return {
     },
     keys = {
       { "<C-,>", "<Cmd>BufferPrevious<CR>", desc = "Prev buffer tab" },
-      { "<C-.>", "<Cmd>BufferNext<CR>", desc = "Next buffer tab" },
-      { "<C-c>", "<Cmd>BufferClose<CR>", desc = "Close buffer tab" },
-      { "<C-1>", "<Cmd>BufferGoto 1<CR>", silent = true, desc = "Go to buffer 1" },
-      { "<C-2>", "<Cmd>BufferGoto 2<CR>", silent = true, desc = "Go to buffer 2" },
-      { "<C-3>", "<Cmd>BufferGoto 3<CR>", silent = true, desc = "Go to buffer 3" },
-      { "<C-4>", "<Cmd>BufferGoto 4<CR>", silent = true, desc = "Go to buffer 4" },
-      { "<C-5>", "<Cmd>BufferGoto 5<CR>", silent = true, desc = "Go to buffer 5" },
-      { "<C-6>", "<Cmd>BufferGoto 6<CR>", silent = true, desc = "Go to buffer 6" },
-      { "<C-7>", "<Cmd>BufferGoto 7<CR>", silent = true, desc = "Go to buffer 7" },
-      { "<C-8>", "<Cmd>BufferGoto 8<CR>", silent = true, desc = "Go to buffer 8" },
-      { "<C-9>", "<Cmd>BufferGoto 9<CR>", silent = true, desc = "Go to buffer 9" },
-      { "<C-0>", "<Cmd>BufferGoto 10<CR>", silent = true, desc = "Go to buffer 10" },
+      { "<C-.>", "<Cmd>BufferNext<CR>",     desc = "Next buffer tab" },
+      { "<C-c>", "<Cmd>BufferClose<CR>",    desc = "Close buffer tab" },
+      { "<C-1>", "<Cmd>BufferGoto 1<CR>",   silent = true,            desc = "Go to buffer 1" },
+      { "<C-2>", "<Cmd>BufferGoto 2<CR>",   silent = true,            desc = "Go to buffer 2" },
+      { "<C-3>", "<Cmd>BufferGoto 3<CR>",   silent = true,            desc = "Go to buffer 3" },
+      { "<C-4>", "<Cmd>BufferGoto 4<CR>",   silent = true,            desc = "Go to buffer 4" },
+      { "<C-5>", "<Cmd>BufferGoto 5<CR>",   silent = true,            desc = "Go to buffer 5" },
+      { "<C-6>", "<Cmd>BufferGoto 6<CR>",   silent = true,            desc = "Go to buffer 6" },
+      { "<C-7>", "<Cmd>BufferGoto 7<CR>",   silent = true,            desc = "Go to buffer 7" },
+      { "<C-8>", "<Cmd>BufferGoto 8<CR>",   silent = true,            desc = "Go to buffer 8" },
+      { "<C-9>", "<Cmd>BufferGoto 9<CR>",   silent = true,            desc = "Go to buffer 9" },
+      { "<C-0>", "<Cmd>BufferGoto 10<CR>",  silent = true,            desc = "Go to buffer 10" },
     },
   },
 
@@ -170,7 +170,7 @@ return {
         window_width = 0.15,
         output = {
           tools = {
-            show_output = true, -- show diffs, tool outputs (file changes)
+            show_output = true,           -- show diffs, tool outputs (file changes)
             show_reasoning_output = true, -- show inner reasoning / dialog
           },
           rendering = {
@@ -248,8 +248,8 @@ return {
             if input and input ~= "" then
               chat.ask(
                 ctx
-                  .. "Execute this task immediately. Output only the final code blocks and assume I want them applied: "
-                  .. input
+                .. "Execute this task immediately. Output only the final code blocks and assume I want them applied: "
+                .. input
               )
             end
           end)
@@ -262,12 +262,13 @@ return {
       model = "gpt-5-mini",
       window = { layout = "vertical", width = 0.25 },
       auto_insert_mode = false,
-      system_prompt = "You are an aggressive autonomous coding assistant. Do not explain, do not apologize. Provide direct, ready-to-use code blocks for the requested task. Your goal is to be a one-shot execution tool.",
+      system_prompt =
+      "You are an aggressive autonomous coding assistant. Do not explain, do not apologize. Provide direct, ready-to-use code blocks for the requested task. Your goal is to be a one-shot execution tool.",
     },
   },
 
   -- Disable Autopairs
-  { "windwp/nvim-autopairs", enabled = false },
+  { "windwp/nvim-autopairs",   enabled = false },
 
   -- Formatting
   {
@@ -341,7 +342,8 @@ return {
     "williamboman/mason-lspconfig.nvim",
     -- list of servers we want available via mason
     config = function()
-      local ensure = { "lua_ls", "stylua", "prettier", "buf", "marksman", "gopls", "html-lsp", "css-lsp", "bashls", "clangd" }
+      local ensure = { "lua_ls", "stylua", "prettier", "buf", "marksman", "gopls", "html-lsp", "css-lsp", "bashls",
+        "clangd" }
       local ok, ml = pcall(require, "mason-lspconfig")
       if not ok then
         vim.notify("mason-lspconfig not available: ensure_installed skipped", vim.log.levels.WARN)
@@ -445,7 +447,7 @@ return {
       }
       -- Enable signs for diagnostics, search results, and git changes
       require("scrollview.contrib.gitsigns").setup()
-      -- Internal search and diagnostic signs are usually enabled via setup, 
+      -- Internal search and diagnostic signs are usually enabled via setup,
       -- but we can explicitly refresh them.
     end,
     dependencies = { "lewis6991/gitsigns.nvim" },
