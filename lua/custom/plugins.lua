@@ -154,8 +154,8 @@ return {
       -- Use a small wrapper that preserves your intentional dev binary but
       -- reports a compatible semantic version to the plugin. The plugin will
       -- look up this executable on PATH, so keep the wrapper named
-      -- `opencode-wrapper` in a directory that's on your PATH (eg. ~/.local/bin).
-      opencode_executable = "opencode-wrapper",
+      -- `wrapper-opencode` in a directory that's on your PATH (eg. ~/.local/bin).
+      opencode_executable = vim.fn.executable "wrapper-opencode" == 1 and "wrapper-opencode" or "opencode",
       -- Hardcoded width for opencode UI
       window = { layout = "vertical", width = 0.15 },
       keymap = {
