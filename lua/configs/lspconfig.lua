@@ -10,7 +10,7 @@ vim.lsp.config("*", {
   semantic_tokens = true,
 })
 
-local servers = { "html", "cssls", "gopls", "marksman", "qmlls", "bashls" }
+local servers = { "html", "cssls", "gopls", "marksman", "qmlls", "bashls", "clangd" }
 
 for _, name in ipairs(servers) do
   -- Load custom options from lua/custom/lsp/<name>.lua
@@ -29,8 +29,14 @@ for _, name in ipairs(servers) do
   vim.api.nvim_create_autocmd("FileType", {
     pattern = opts.filetypes or name,
     callback = function(ev)
+      -- print("FileType autocmd triggered for " .. ev.match .. " buffer " .. ev.buf)
       local config = vim.lsp.config[name]
-      if config then vim.lsp.start(config, { bufnr = ev.buf }) end
+      if config then
+        -- print("Starting LSP " .. name .. " for buffer " .. ev.buf)
+        vim.lsp.start(config, { bufnr = ev.buf })
+      else
+        -- print("No config found for " .. name)
+      end
     end,
   })
 end

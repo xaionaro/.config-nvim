@@ -6,7 +6,7 @@ return {
     lazy = false,
     build = ":TSUpdate",
     opts = {
-      ensure_installed = { "lua", "vim", "vimdoc", "bash", "json", "markdown", "go" },
+      ensure_installed = { "lua", "vim", "vimdoc", "bash", "json", "markdown", "go", "cpp", "c" },
       highlight = { enable = true },
     },
     config = function(_, opts)
@@ -338,7 +338,7 @@ return {
     "williamboman/mason-lspconfig.nvim",
     -- list of servers we want available via mason
     config = function()
-      local ensure = { "lua_ls", "stylua", "prettier", "buf", "marksman", "gopls", "html-lsp", "css-lsp", "bashls" }
+      local ensure = { "lua_ls", "stylua", "prettier", "buf", "marksman", "gopls", "html-lsp", "css-lsp", "bashls", "clangd" }
       local ok, ml = pcall(require, "mason-lspconfig")
       if not ok then
         vim.notify("mason-lspconfig not available: ensure_installed skipped", vim.log.levels.WARN)
@@ -379,7 +379,14 @@ return {
       },
       filesystem_watchers = {
         enable = true,
-        debounce_delay = 50,
+        debounce_delay = 100,
+        max_events = 1000,
+        ignore_dirs = {
+          "node_modules",
+          "dist",
+          ".git",
+          ".cache",
+        },
       },
       update_focused_file = {
         enable = true,
