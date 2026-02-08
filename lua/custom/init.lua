@@ -79,6 +79,10 @@ M.setup = function()
 
     vim.api.nvim_set_hl(0, "NvimTreeNormal", { bg = "#181818" })
     vim.api.nvim_set_hl(0, "NvimTreeNormalNC", { bg = "#121212" })
+    vim.api.nvim_set_hl(0, "NvimTreeGitDirty", { fg = "#f5a742" })
+    vim.api.nvim_set_hl(0, "NvimTreeGitDirtyIcon", { fg = "#f5a742" })
+    vim.api.nvim_set_hl(0, "NvimTreeGitModified", { fg = "#f5a742" })
+    vim.api.nvim_set_hl(0, "NvimTreeGitModifiedIcon", { fg = "#f5a742" })
   end
 
   vim.api.nvim_create_autocmd({ "VimEnter", "ColorScheme", "BufEnter", "FileType" }, {

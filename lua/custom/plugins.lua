@@ -363,12 +363,13 @@ return {
         side = "left",
       },
       renderer = {
+        highlight_git = true,
         icons = {
           show = {
             file = true,
             folder = true,
             folder_arrow = true,
-            git = true,
+            git = false,
           },
         },
       },
