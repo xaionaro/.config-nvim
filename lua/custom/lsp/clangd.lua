@@ -11,6 +11,7 @@ return {
     "--function-arg-placeholders",
     "--fallback-style=llvm",
   },
+  filetypes = { "c", "cpp", "objc", "objcpp", "cuda" },
   init_options = {
     usePlaceholders = true,
     completeUnimported = true,
