@@ -12,6 +12,19 @@ vim.lsp.config("*", {
 
 local servers = { "html", "cssls", "gopls", "marksman", "qmlls", "bashls", "clangd" }
 
+-- Export servers list for mason-lspconfig dynamic auto-install configuration.
+-- Mapping from nvim-lspconfig names to Mason package names.
+local mason_package_map = {
+  html = "html-lsp",
+  cssls = "css-lsp",
+  bashls = "bash-language-server",
+  lua_ls = "lua-language-server",
+  gopls = "gopls",
+  marksman = "marksman",
+  qmlls = "qmlls",
+  clangd = "clangd",
+}
+
 for _, name in ipairs(servers) do
   -- Load custom options from lua/custom/lsp/<name>.lua
   local ok, custom_opts = pcall(require, "custom.lsp." .. name)
@@ -40,3 +53,8 @@ for _, name in ipairs(servers) do
     end,
   })
 end
+
+return {
+  servers = servers,
+  mason_package_map = mason_package_map,
+}

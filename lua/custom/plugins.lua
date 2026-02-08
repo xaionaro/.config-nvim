@@ -349,12 +349,21 @@ return {
   -- Mason LSP bridge: ensure a list of servers are installed
   {
     "williamboman/mason-lspconfig.nvim",
-    -- list of servers we want available via mason
     config = function()
-      local ensure = { "lua_ls", "stylua", "prettier", "buf", "marksman", "gopls", "html-lsp", "css-lsp", "bashls",
-        "clangd" }
-      local ok, ml = pcall(require, "mason-lspconfig")
+      local ok, lspconfig = pcall(require, "configs.lspconfig")
       if not ok then
+        vim.notify("configs.lspconfig not available: ensure_installed skipped", vim.log.levels.WARN)
+        return
+      end
+
+      local ensure = {}
+      for _, server in ipairs(lspconfig.servers) do
+        local mason_name = lspconfig.mason_package_map[server]
+        table.insert(ensure, mason_name or server)
+      end
+
+      local ok_ml, ml = pcall(require, "mason-lspconfig")
+      if not ok_ml then
         vim.notify("mason-lspconfig not available: ensure_installed skipped", vim.log.levels.WARN)
         return
       end
