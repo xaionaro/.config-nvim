@@ -11,6 +11,9 @@ end
 
 vim.opt.rtp:prepend(lazypath)
 
+-- Ensure ~/.local/bin is in PATH for tree-sitter-cli
+vim.env.PATH = vim.fn.expand "~/.local/bin" .. ":" .. vim.env.PATH
+
 local lazy_config = require "configs.lazy"
 
 -- Ensure Neovim can see system treesitter parsers (your lua.so is here)

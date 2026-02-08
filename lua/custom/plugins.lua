@@ -13,10 +13,17 @@ return {
       local ts = require "nvim-treesitter"
       ts.setup(opts)
 
+      if opts.ensure_installed then
+        ts.install(opts.ensure_installed)
+      end
+
       if opts.highlight and opts.highlight.enable then
         vim.api.nvim_create_autocmd("FileType", {
           callback = function()
-            vim.treesitter.start()
+            local lang = vim.treesitter.language.get_lang(vim.bo.filetype) or vim.bo.filetype
+            if pcall(vim.treesitter.get_parser, 0, lang) then
+              vim.treesitter.start()
+            end
           end,
         })
       end
