@@ -83,6 +83,21 @@ M.setup = function()
     vim.api.nvim_set_hl(0, "NvimTreeGitDirtyIcon", { fg = "#f5a742" })
     vim.api.nvim_set_hl(0, "NvimTreeGitModified", { fg = "#f5a742" })
     vim.api.nvim_set_hl(0, "NvimTreeGitModifiedIcon", { fg = "#f5a742" })
+
+    -- ScrollView highlights (Clickable scrollbar)
+    local colors = require("base46").get_theme_tb "base_30"
+    vim.api.nvim_set_hl(0, "ScrollView", { bg = colors.light_grey or "#626262" })
+    vim.api.nvim_set_hl(0, "ScrollViewTrack", { bg = colors.black2 or "#252525" })
+
+    -- ScrollView Sign Highlights (Matching VS Code style)
+    vim.api.nvim_set_hl(0, "ScrollViewError", { fg = colors.red })
+    vim.api.nvim_set_hl(0, "ScrollViewWarn", { fg = colors.yellow })
+    vim.api.nvim_set_hl(0, "ScrollViewInfo", { fg = colors.blue })
+    vim.api.nvim_set_hl(0, "ScrollViewHint", { fg = colors.purple })
+    vim.api.nvim_set_hl(0, "ScrollViewSearch", { fg = colors.orange })
+    vim.api.nvim_set_hl(0, "ScrollViewGitSignsAdd", { fg = colors.green })
+    vim.api.nvim_set_hl(0, "ScrollViewGitSignsChange", { fg = colors.blue })
+    vim.api.nvim_set_hl(0, "ScrollViewGitSignsDelete", { fg = colors.red })
   end
 
   vim.api.nvim_create_autocmd({ "VimEnter", "ColorScheme", "BufEnter", "FileType" }, {

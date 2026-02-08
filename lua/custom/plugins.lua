@@ -423,44 +423,40 @@ return {
     dependencies = { "nvim-telescope/telescope.nvim" },
   },
 
-  -- Scrollbar indicators (VS Code-like)
+  -- Clickable scrollbar (Scrollview)
   {
-    "petertriho/nvim-scrollbar",
-    dependencies = {
-      {
-        "kevinhwang91/nvim-hlslens",
-        config = function()
-          require("hlslens").setup { build_gi = false }
-        end,
-      },
-      "lewis6991/gitsigns.nvim",
-    },
-    event = { "BufReadPost", "BufNewFile" },
+    "dstein64/nvim-scrollview",
+    lazy = false,
     config = function()
-      local scrollbar = require "scrollbar"
-      local colors = require("base46").get_theme_tb "base_30"
-
-      scrollbar.setup {
-        show = true,
-        handle = {
-          text = " ",
-          color = colors.grey,
-          hide_if_all_visible = true,
-        },
-        marks = {
-          Search = { color = colors.orange },
-          Error = { color = colors.red },
-          Warn = { color = colors.yellow },
-          Info = { color = colors.blue },
-          Hint = { color = colors.purple },
-          Misc = { color = colors.green },
-        },
-        handlers = {
-          diagnostic = true,
-          search = true,
-          gitsigns = true,
+      require("scrollview").setup {
+        current_only = false,
+        excluded_filetypes = { "NvimTree", "terminal", "nofile" },
+        always_show = true,
+        winblend = 0,
+        zindex = 40,
+        hover = true,
+        signs_on_scrollbar = true,
+        diagnostics_severities = {
+          vim.diagnostic.severity.ERROR,
+          vim.diagnostic.severity.WARN,
+          vim.diagnostic.severity.INFO,
+          vim.diagnostic.severity.HINT,
         },
       }
+      -- Enable signs for diagnostics, search results, and git changes
+      require("scrollview.contrib.gitsigns").setup()
+      -- Internal search and diagnostic signs are usually enabled via setup, 
+      -- but we can explicitly refresh them.
+    end,
+    dependencies = { "lewis6991/gitsigns.nvim" },
+  },
+
+  -- Search enhancements
+  {
+    "kevinhwang91/nvim-hlslens",
+    event = "BufReadPost",
+    config = function()
+      require("hlslens").setup { build_gi = false }
     end,
   },
 
