@@ -10,7 +10,13 @@ return {
       highlight = { enable = true },
     },
     config = function(_, opts)
-      require("nvim-treesitter.configs").setup(opts)
+      local ok, configs = pcall(require, "nvim-treesitter.configs")
+      if not ok then
+        vim.notify("nvim-treesitter not installed: run :Lazy sync", vim.log.levels.WARN)
+        return
+      end
+
+      configs.setup(opts)
 
       if opts.highlight and opts.highlight.enable then
         vim.api.nvim_create_autocmd("FileType", {
