@@ -41,6 +41,12 @@ return {
     end,
   },
 
+  -- ISC DHCP syntax highlighting
+  {
+    "vim-scripts/dhcpd.vim",
+    lazy = false,
+  },
+
   -- AI Assistant
   {
     "ThePrimeagen/99",
