@@ -120,18 +120,18 @@ return {
     },
     keys = {
       { "<C-,>", "<Cmd>BufferPrevious<CR>", desc = "Prev buffer tab" },
-      { "<C-.>", "<Cmd>BufferNext<CR>", desc = "Next buffer tab" },
-      { "<C-c>", "<Cmd>BufferClose<CR>", desc = "Close buffer tab" },
-      { "<C-1>", "<Cmd>BufferGoto 1<CR>", silent = true, desc = "Go to buffer 1" },
-      { "<C-2>", "<Cmd>BufferGoto 2<CR>", silent = true, desc = "Go to buffer 2" },
-      { "<C-3>", "<Cmd>BufferGoto 3<CR>", silent = true, desc = "Go to buffer 3" },
-      { "<C-4>", "<Cmd>BufferGoto 4<CR>", silent = true, desc = "Go to buffer 4" },
-      { "<C-5>", "<Cmd>BufferGoto 5<CR>", silent = true, desc = "Go to buffer 5" },
-      { "<C-6>", "<Cmd>BufferGoto 6<CR>", silent = true, desc = "Go to buffer 6" },
-      { "<C-7>", "<Cmd>BufferGoto 7<CR>", silent = true, desc = "Go to buffer 7" },
-      { "<C-8>", "<Cmd>BufferGoto 8<CR>", silent = true, desc = "Go to buffer 8" },
-      { "<C-9>", "<Cmd>BufferGoto 9<CR>", silent = true, desc = "Go to buffer 9" },
-      { "<C-0>", "<Cmd>BufferGoto 10<CR>", silent = true, desc = "Go to buffer 10" },
+      { "<C-.>", "<Cmd>BufferNext<CR>",     desc = "Next buffer tab" },
+      { "<C-c>", "<Cmd>BufferClose<CR>",    desc = "Close buffer tab" },
+      { "<C-1>", "<Cmd>BufferGoto 1<CR>",   silent = true,            desc = "Go to buffer 1" },
+      { "<C-2>", "<Cmd>BufferGoto 2<CR>",   silent = true,            desc = "Go to buffer 2" },
+      { "<C-3>", "<Cmd>BufferGoto 3<CR>",   silent = true,            desc = "Go to buffer 3" },
+      { "<C-4>", "<Cmd>BufferGoto 4<CR>",   silent = true,            desc = "Go to buffer 4" },
+      { "<C-5>", "<Cmd>BufferGoto 5<CR>",   silent = true,            desc = "Go to buffer 5" },
+      { "<C-6>", "<Cmd>BufferGoto 6<CR>",   silent = true,            desc = "Go to buffer 6" },
+      { "<C-7>", "<Cmd>BufferGoto 7<CR>",   silent = true,            desc = "Go to buffer 7" },
+      { "<C-8>", "<Cmd>BufferGoto 8<CR>",   silent = true,            desc = "Go to buffer 8" },
+      { "<C-9>", "<Cmd>BufferGoto 9<CR>",   silent = true,            desc = "Go to buffer 9" },
+      { "<C-0>", "<Cmd>BufferGoto 10<CR>",  silent = true,            desc = "Go to buffer 10" },
     },
   },
 
@@ -185,7 +185,7 @@ return {
         window_width = 0.25,
         output = {
           tools = {
-            show_output = true, -- show diffs, tool outputs (file changes)
+            show_output = true,           -- show diffs, tool outputs (file changes)
             show_reasoning_output = true, -- show inner reasoning / dialog
           },
           rendering = {
@@ -263,8 +263,8 @@ return {
             if input and input ~= "" then
               chat.ask(
                 ctx
-                  .. "Execute this task immediately. Output only the final code blocks and assume I want them applied: "
-                  .. input
+                .. "Execute this task immediately. Output only the final code blocks and assume I want them applied: "
+                .. input
               )
             end
           end)
@@ -277,12 +277,13 @@ return {
       model = "gpt-5-mini",
       window = { layout = "vertical", width = 0.25 },
       auto_insert_mode = false,
-      system_prompt = "You are an aggressive autonomous coding assistant. Do not explain, do not apologize. Provide direct, ready-to-use code blocks for the requested task. Your goal is to be a one-shot execution tool.",
+      system_prompt =
+      "You are an aggressive autonomous coding assistant. Do not explain, do not apologize. Provide direct, ready-to-use code blocks for the requested task. Your goal is to be a one-shot execution tool.",
     },
   },
 
   -- Disable Autopairs
-  { "windwp/nvim-autopairs", enabled = false },
+  { "windwp/nvim-autopairs",   enabled = false },
 
   -- Formatting
   {
@@ -452,15 +453,26 @@ return {
   {
     "dstein64/nvim-scrollview",
     lazy = false,
+    init = function()
+      -- Must be set before plugin initialization.
+      vim.g.scrollview_diagnostics_error_symbol = " "
+      vim.g.scrollview_diagnostics_warn_symbol = " "
+      vim.g.scrollview_diagnostics_info_symbol = " "
+      vim.g.scrollview_diagnostics_hint_symbol = " "
+    end,
     config = function()
       require("scrollview").setup {
         current_only = false,
         excluded_filetypes = { "NvimTree", "terminal", "nofile" },
         always_show = true,
-        winblend = 0,
-        zindex = 40,
+        base = "right",
+        column = 1,
+        winblend = 70,
+        winblend_gui = 70,
+        zindex = 1,
         hover = true,
-        signs_on_scrollbar = true,
+        signs_scrollbar_overlap = "off",
+        signs_overflow = "left",
         diagnostics_severities = {
           vim.diagnostic.severity.ERROR,
           vim.diagnostic.severity.WARN,
@@ -470,9 +482,13 @@ return {
       }
       -- Enable signs for diagnostics, search results, and git changes
       require("scrollview.contrib.gitsigns").setup {
-        add_symbol = "┃",
-        change_symbol = "┃",
-        delete_symbol = "┃",
+        add_highlight = "ScrollViewGitSignsAdd",
+        change_highlight = "ScrollViewGitSignsChange",
+        delete_highlight = "ScrollViewGitSignsDelete",
+        add_symbol = " ",
+        change_symbol = " ",
+        delete_symbol = " ",
+        only_first_line = true,
       }
       -- Internal search and diagnostic signs are usually enabled via setup,
       -- but we can explicitly refresh them.
