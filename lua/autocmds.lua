@@ -14,6 +14,15 @@ vim.api.nvim_create_autocmd("FileChangedShellPost", {
   end,
 })
 
+-- Set filetype to 'conf' for generic .conf files
+vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+  desc = "Set conf filetype for .conf files",
+  pattern = "*.conf",
+  callback = function(args)
+    vim.bo[args.buf].filetype = "conf"
+  end,
+})
+
 -- Auto-enter insert mode when focusing opencode input
 -- Also auto-focus input when focusing output (logs)
 vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter" }, {
