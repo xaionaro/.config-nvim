@@ -194,6 +194,11 @@ return {
           },
         },
       },
+      context = {
+        diagnostics = {
+          hint = true,
+        },
+      },
       -- keymap and ui are now above; no duplicates
       debug = {
         enabled = false, -- Enable debug messages in the opencode output window
@@ -202,6 +207,112 @@ return {
         quick_chat = { keep_session = false, set_active_session = false },
       },
     },
+    config = function(_, opts)
+      require("opencode").setup(opts)
+
+      local ok_base, base_context = pcall(require, "opencode.context.base_context")
+      local ok_config, opencode_config = pcall(require, "opencode.config")
+      local ok_state, opencode_state = pcall(require, "opencode.state")
+      if not (ok_base and ok_config and ok_state) then
+        return
+      end
+
+      if base_context._supports_hint_diagnostics then
+        return
+      end
+      base_context._supports_hint_diagnostics = true
+
+      local original_get_diagnostics = base_context.get_diagnostics
+
+      local function diag_key(diag)
+        return table.concat({
+          tostring(diag.lnum),
+          tostring(diag.col),
+          tostring(diag.end_lnum),
+          tostring(diag.end_col),
+          tostring(diag.severity),
+          tostring(diag.message),
+          tostring(diag.source),
+          tostring(diag.code),
+        }, ":")
+      end
+
+      local function collect_hint_diagnostics(buf, only_closest, ranges)
+        local hint_diags = {}
+
+        local function append(opts_)
+          for _, diag in ipairs(vim.diagnostic.get(buf, opts_)) do
+            table.insert(hint_diags, diag)
+          end
+        end
+
+        if only_closest then
+          if ranges then
+            for _, r in ipairs(ranges) do
+              for line_num = r.start_line, r.end_line do
+                append { lnum = line_num, severity = { vim.diagnostic.severity.HINT } }
+              end
+            end
+          else
+            local win = vim.fn.win_findbuf(buf)[1]
+            local cursor_pos = vim.fn.getcurpos(win)
+            append { lnum = cursor_pos[2] - 1, severity = { vim.diagnostic.severity.HINT } }
+          end
+        else
+          append { severity = { vim.diagnostic.severity.HINT } }
+        end
+
+        return hint_diags
+      end
+
+      base_context.get_diagnostics = function(buf, context_config, range)
+        local diagnostics, ranges = original_get_diagnostics(buf, context_config, range)
+        if diagnostics == nil then
+          return nil, ranges
+        end
+
+        local current_conf = vim.tbl_get(opencode_state, "current_context_config", "diagnostics") or {}
+        local global_conf = vim.tbl_get(opencode_config, "context", "diagnostics") or {}
+        local override_conf = context_config and vim.tbl_get(context_config, "diagnostics") or {}
+        local diagnostic_conf = vim.tbl_deep_extend("force", global_conf, current_conf, override_conf)
+
+        if not diagnostic_conf.hint then
+          return diagnostics, ranges
+        end
+
+        local hint_diags = collect_hint_diagnostics(buf, diagnostic_conf.only_closest, ranges)
+        if #hint_diags == 0 then
+          return diagnostics, ranges
+        end
+
+        local seen = {}
+        for _, diag in ipairs(diagnostics) do
+          seen[diag_key(diag)] = true
+        end
+
+        for _, diag in ipairs(hint_diags) do
+          local normalized = {
+            message = diag.message,
+            severity = diag.severity,
+            lnum = diag.lnum,
+            col = diag.col,
+            end_lnum = diag.end_lnum,
+            end_col = diag.end_col,
+            source = diag.source,
+            code = diag.code,
+            user_data = diag.user_data,
+          }
+
+          local key = diag_key(normalized)
+          if not seen[key] then
+            table.insert(diagnostics, normalized)
+            seen[key] = true
+          end
+        end
+
+        return diagnostics, ranges
+      end
+    end,
     dependencies = {
       "stevearc/dressing.nvim",
       "nvim-lua/plenary.nvim",
