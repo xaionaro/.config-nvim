@@ -10,7 +10,7 @@ vim.lsp.config("*", {
   semantic_tokens = true,
 })
 
-local servers = { "html", "cssls", "gopls", "marksman", "qmlls", "bashls", "clangd" }
+local servers = { "html", "cssls", "gopls", "marksman", "qmlls", "bashls", "clangd", "jsonls" }
 
 -- Export servers list for mason-lspconfig dynamic auto-install configuration.
 -- Mapping from nvim-lspconfig names to Mason package names.
@@ -23,6 +23,7 @@ local mason_package_map = {
   marksman = "marksman",
   qmlls = "qmlls",
   clangd = "clangd",
+  jsonls = "json-lsp",
 }
 
 for _, name in ipairs(servers) do

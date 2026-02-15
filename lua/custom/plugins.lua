@@ -438,11 +438,12 @@ return {
   },
 
   -- Mason core (installs language servers)
-  { "williamboman/mason.nvim", opts = {} },
+  { "williamboman/mason.nvim", lazy = false, opts = {} },
 
   -- Ensure common formatters/linters are installed via Mason
   {
     "WhoIsSethDaniel/mason-tool-installer.nvim",
+    lazy = false,
     -- Run after mason.nvim is available
     dependencies = { "williamboman/mason.nvim" },
     config = function()
@@ -463,7 +464,9 @@ return {
           "rustfmt",
           "clang-format",
           "buf",
+          "json-lsp",
         },
+        run_on_start = true,
         auto_update = false,
       }
     end,
