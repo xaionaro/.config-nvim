@@ -16,6 +16,12 @@ M.setup = function()
 
   map({ "n", "v" }, "<F2>", vim.lsp.buf.rename, { desc = "Rename symbol" })
 
+  -- Make room for ScrollView/signs without covering text
+  vim.opt.textwidth = 120
+  vim.opt.colorcolumn = "120"
+  vim.api.nvim_set_hl(0, "ColorColumn", { bg = "#0F0F0F" })
+  vim.opt.signcolumn = "yes:3"
+
   -- Interpret .txt files as markdown for highlighting and LSP features
   vim.filetype.add {
     extension = {
@@ -95,16 +101,17 @@ M.setup = function()
     local colors = require("base46").get_theme_tb "base_30"
     vim.api.nvim_set_hl(0, "ScrollView", { bg = "#a0a0a0" })
     vim.api.nvim_set_hl(0, "ScrollViewTrack", { bg = "#252525" })
+    vim.api.nvim_set_hl(0, "ScrollViewHover", { bg = "#b5b5b5" })
 
     -- ScrollView Sign Highlights (Matching VS Code style)
-    vim.api.nvim_set_hl(0, "ScrollViewDiagnosticsError", { bg = colors.red })
-    vim.api.nvim_set_hl(0, "ScrollViewDiagnosticsWarn", { bg = colors.yellow })
-    vim.api.nvim_set_hl(0, "ScrollViewDiagnosticsInfo", { bg = colors.blue })
-    vim.api.nvim_set_hl(0, "ScrollViewDiagnosticsHint", { bg = colors.purple })
+    vim.api.nvim_set_hl(0, "ScrollViewDiagnosticsError", { link = "DiagnosticSignError" })
+    vim.api.nvim_set_hl(0, "ScrollViewDiagnosticsWarn", { link = "DiagnosticSignWarn" })
+    vim.api.nvim_set_hl(0, "ScrollViewDiagnosticsInfo", { link = "DiagnosticSignInfo" })
+    vim.api.nvim_set_hl(0, "ScrollViewDiagnosticsHint", { link = "DiagnosticSignHint" })
     vim.api.nvim_set_hl(0, "ScrollViewSearch", { fg = colors.orange })
-    vim.api.nvim_set_hl(0, "ScrollViewGitSignsAdd", { bg = colors.green })
-    vim.api.nvim_set_hl(0, "ScrollViewGitSignsChange", { bg = colors.blue })
-    vim.api.nvim_set_hl(0, "ScrollViewGitSignsDelete", { bg = colors.red })
+    vim.api.nvim_set_hl(0, "ScrollViewGitSignsAdd", { link = "GitSignsAdd" })
+    vim.api.nvim_set_hl(0, "ScrollViewGitSignsChange", { link = "GitSignsChange" })
+    vim.api.nvim_set_hl(0, "ScrollViewGitSignsDelete", { link = "GitSignsDelete" })
   end
 
   vim.api.nvim_create_autocmd({ "VimEnter", "ColorScheme", "BufEnter", "FileType" }, {

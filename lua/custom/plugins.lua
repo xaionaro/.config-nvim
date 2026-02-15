@@ -596,26 +596,22 @@ return {
   {
     "dstein64/nvim-scrollview",
     lazy = false,
-    init = function()
-      -- Must be set before plugin initialization.
-      vim.g.scrollview_diagnostics_error_symbol = " "
-      vim.g.scrollview_diagnostics_warn_symbol = " "
-      vim.g.scrollview_diagnostics_info_symbol = " "
-      vim.g.scrollview_diagnostics_hint_symbol = " "
-    end,
     config = function()
       require("scrollview").setup {
         current_only = false,
         excluded_filetypes = { "NvimTree", "terminal", "nofile" },
         always_show = true,
-        base = "right",
+        visibility = "always",
+        base = "left",
         column = 1,
         winblend = 70,
         winblend_gui = 70,
         zindex = 1,
         hover = true,
-        signs_scrollbar_overlap = "off",
-        signs_overflow = "left",
+        signs_scrollbar_overlap = "over",
+        signs_overflow = "right",
+        signs_max_per_row = 2,
+        signs_max_per_row_by_group = { gitsigns = 1, diagnostics = 1 },
         diagnostics_severities = {
           vim.diagnostic.severity.ERROR,
           vim.diagnostic.severity.WARN,
@@ -623,14 +619,12 @@ return {
           vim.diagnostic.severity.HINT,
         },
       }
+      vim.g.scrollview_signs_scrollbar_offset_always = true
       -- Enable signs for diagnostics, search results, and git changes
       require("scrollview.contrib.gitsigns").setup {
         add_highlight = "ScrollViewGitSignsAdd",
         change_highlight = "ScrollViewGitSignsChange",
         delete_highlight = "ScrollViewGitSignsDelete",
-        add_symbol = " ",
-        change_symbol = " ",
-        delete_symbol = " ",
         only_first_line = true,
       }
       -- Internal search and diagnostic signs are usually enabled via setup,
