@@ -16,6 +16,13 @@ M.setup = function()
 
   map({ "n", "v" }, "<F2>", vim.lsp.buf.rename, { desc = "Rename symbol" })
 
+  -- Interpret .txt files as markdown for highlighting and LSP features
+  vim.filetype.add {
+    extension = {
+      txt = "markdown",
+    },
+  }
+
   -- Highlights (Ensuring VS Code-ish feel and Semantic Token visibility)
   local function focus_main_window()
     local wins = vim.api.nvim_list_wins()
