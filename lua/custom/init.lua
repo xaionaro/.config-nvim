@@ -37,8 +37,8 @@ M.setup = function()
     local current_buf = vim.api.nvim_win_get_buf(current_win)
     local current_ft = vim.api.nvim_get_option_value("filetype", { buf = current_buf }) or ""
 
-    -- If we are already in an interactive/input field, don't move focus
-    if current_ft == "OpencodeInput" or current_ft == "toggleterm" then
+    -- If we are already in a terminal, don't move focus
+    if current_ft == "toggleterm" or vim.api.nvim_get_option_value("buftype", { buf = current_buf }) == "terminal" then
       return true
     end
 
@@ -48,10 +48,10 @@ M.setup = function()
         local bufnr = vim.api.nvim_win_get_buf(win)
         local ft = vim.api.nvim_get_option_value("filetype", { buf = bufnr }) or ""
         local bt = vim.api.nvim_get_option_value("buftype", { buf = bufnr }) or ""
-        -- Main window: not a sidebar, not Opencode, not a terminal, and is a normal file (bt == "")
+        -- Main window: not a sidebar, not a terminal, and is a normal file (bt == "")
         -- We allow ft == "" because a new empty buffer has no filetype yet.
         if
-            (ft == "" or (ft ~= "NvimTree" and ft ~= "Opencode" and ft ~= "OpencodeInput" and ft ~= "toggleterm"))
+            (ft == "" or (ft ~= "NvimTree" and ft ~= "toggleterm"))
             and bt == ""
         then
           vim.api.nvim_set_current_win(win)
@@ -85,12 +85,6 @@ M.setup = function()
     vim.api.nvim_set_hl(0, "@lsp.typemod.typeParameter.definition.go", { fg = "#9CDCFE" })
     vim.api.nvim_set_hl(0, "@lsp.typemod.string.format.go", { fg = "#9CDCFE" })
 
-    -- Opencode UI fixes (removing black strips and matching NvChad style)
-    vim.api.nvim_set_hl(0, "OpencodeSidebarWinSeparator", { link = "WinSeparator" })
-    vim.api.nvim_set_hl(0, "OpencodeSidebarWinHorizontalSeparator", { link = "WinSeparator" })
-    vim.api.nvim_set_hl(0, "OpencodePromptInputBorder", { link = "WinSeparator" })
-    vim.api.nvim_set_hl(0, "OpencodeSidebarNormal", { link = "Normal" })
-
     vim.api.nvim_set_hl(0, "NvimTreeNormal", { bg = "#181818" })
     vim.api.nvim_set_hl(0, "NvimTreeNormalNC", { bg = "#121212" })
     vim.api.nvim_set_hl(0, "NvimTreeGitDirty", { fg = "#f5a742" })
@@ -123,43 +117,22 @@ M.setup = function()
   })
   apply_highlights()
 
-  -- Auto-open NvimTree and Opencode on startup
+  -- Auto-open NvimTree on startup
   vim.api.nvim_create_autocmd("VimEnter", {
     group = vim.api.nvim_create_augroup("AutoOpenSidebars", { clear = true }),
     callback = function()
-      -- Capture the main window before opening sidebars
       local main_win = vim.api.nvim_get_current_win()
 
-      -- Ensure plugins are loaded (call via pcall to avoid noisy output and type issues)
       pcall(function()
-        require("lazy").load { plugins = { "nvim-tree.lua", "opencode.nvim" } }
+        require("lazy").load { plugins = { "nvim-tree.lua", "claudecode.nvim" } }
       end)
-      -- Redraw to clear any transient messages so Neovim doesn't require an extra <Enter>
       pcall(function()
         vim.cmd "redraw"
       end)
 
-      -- Monkeypatch Opencode Sidebar to respect the focus setting synchronously
-      local ok_sidebar, Sidebar = pcall(require, "opencode.sidebar")
-      if ok_sidebar and Sidebar.open then
-        local old_open = Sidebar.open
-        Sidebar.open = function(self, opts)
-          local ret = old_open(self, opts)
-          local Config = require "opencode.config"
-          if not Config.behaviour.auto_focus_sidebar then
-            if self.code and self.code.winid and vim.api.nvim_win_is_valid(self.code.winid) then
-              vim.api.nvim_set_current_win(self.code.winid)
-            elseif vim.api.nvim_win_is_valid(main_win) then
-              vim.api.nvim_set_current_win(main_win)
-            end
-          end
-          return ret
-        end
-      end
-
-      -- Open Opencode sidebar (on the right)
+      -- Open Claude Code (on the right)
       pcall(function()
-        vim.cmd "Opencode"
+        vim.cmd "ClaudeCode"
       end)
       if vim.api.nvim_win_is_valid(main_win) then
         vim.api.nvim_set_current_win(main_win)
@@ -173,7 +146,6 @@ M.setup = function()
         vim.api.nvim_set_current_win(main_win)
       end
 
-      -- Ensure focus is back in the main window as a final non-racy fallback
       vim.schedule(function()
         vim.schedule(function()
           if vim.api.nvim_win_is_valid(main_win) then
@@ -204,9 +176,8 @@ M.setup = function()
         if vim.api.nvim_win_is_valid(win) then
           local bufnr = vim.api.nvim_win_get_buf(win)
           local ft = vim.api.nvim_get_option_value("filetype", { buf = bufnr }) or ""
-          -- Only move focus if we land in a sidebar window (exactly 'NvimTree' or 'Opencode').
-          -- Do NOT move focus if we land in an input field (like 'OpencodeInput').
-          if ft == "NvimTree" or ft == "Opencode" then
+          -- Only move focus if we land in a sidebar window.
+          if ft == "NvimTree" then
             focus_main_window()
           end
         end
@@ -224,6 +195,7 @@ M.setup = function()
           ["NvimTree"] = true,
           ["qf"] = true,
           ["notify"] = true,
+          ["snacks_terminal"] = true,
         }
 
         for _, win in ipairs(wins) do
@@ -232,13 +204,9 @@ M.setup = function()
             local ft = vim.api.nvim_get_option_value("filetype", { buf = bufnr }) or ""
             local bt = vim.api.nvim_get_option_value("buftype", { buf = bufnr }) or ""
 
-            -- If it's a normal editor window (not a sidebar and not opencode), keep nvim open.
-            -- We consider it an editor window if it has a filetype AND it's not a sidebar.
-            -- Or if it's an empty buffer that is NOT in a sidebar window.
-            if not sidebar_fts[ft] and not ft:lower():match "opencode" then
-              -- If it's a normal buffer (bt == "") or a terminal/help that we want to keep, return.
-              -- We only want to quit if ALL remaining windows are sidebars.
-              if bt == "" or bt == "terminal" or bt == "help" then
+            -- If it's a normal editor window (not a sidebar/utility), keep nvim open.
+            if not sidebar_fts[ft] then
+              if bt == "" or bt == "help" then
                 return
               end
             end
@@ -260,8 +228,8 @@ M.setup = function()
         return
       end
       local ft = vim.api.nvim_get_option_value("filetype", { buf = 0 }) or ""
-      -- Skip sidebars, opencode inputs and quickfix-like buffers
-      if ft == "NvimTree" or ft:lower():match "opencode" or ft == "qf" then
+      -- Skip sidebars and quickfix-like buffers
+      if ft == "NvimTree" or ft == "qf" then
         return
       end
       local mark = vim.api.nvim_buf_get_mark(0, '"')
@@ -275,8 +243,7 @@ M.setup = function()
   -- Ensure command-line commands entered while a sidebar is focused act on the
   -- main editor window. This reroutes ':' (and mapped ';') so that commands
   -- like `:q` will affect the main window (and exit nvim) instead of closing
-  -- the sidebar. We avoid rerouting interactive inputs like Opencode's prompt
-  -- and terminals.
+  -- the sidebar. We avoid rerouting terminals.
   vim.api.nvim_create_autocmd("CmdlineEnter", {
     group = vim.api.nvim_create_augroup("CmdlineFocusMain", { clear = true }),
     callback = function()
@@ -287,14 +254,14 @@ M.setup = function()
       local bufnr = vim.api.nvim_win_get_buf(win)
       local ft = vim.api.nvim_get_option_value("filetype", { buf = bufnr }) or ""
 
-      -- Don't reroute interactive plugin inputs or terminals
-      if ft == "OpencodeInput" or ft == "toggleterm" then
+      -- Don't reroute terminals
+      if ft == "toggleterm" or vim.api.nvim_get_option_value("buftype", { buf = bufnr }) == "terminal" then
         return
       end
 
-      -- If the commandline was opened from a sidebar (NvimTree / opencode / qf),
+      -- If the commandline was opened from a sidebar (NvimTree / qf),
       -- move focus back to a normal editor window so the command acts there.
-      if ft == "NvimTree" or ft == "qf" or ft:lower():match("opencode") then
+      if ft == "NvimTree" or ft == "qf" then
         -- Do this synchronously so the command will operate on the main window.
         focus_main_window()
       end

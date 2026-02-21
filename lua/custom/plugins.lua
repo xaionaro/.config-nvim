@@ -47,58 +47,6 @@ return {
     lazy = false,
   },
 
-  -- AI Assistant
-  {
-    "ThePrimeagen/99",
-    lazy = false,
-    keys = {
-      {
-        "<leader>ap",
-        function()
-          require("99").fill_in_function_prompt()
-        end,
-        mode = { "n", "v" },
-        desc = "LLM: fill function (with prompt)",
-      },
-      {
-        "<leader>af",
-        function()
-          require("99").fill_in_function()
-        end,
-        mode = "n",
-        desc = "LLM: fill function",
-      },
-      {
-        "<leader>av",
-        function()
-          require("99").visual()
-        end,
-        mode = "v",
-        desc = "LLM: visual",
-      },
-      {
-        "<leader>as",
-        function()
-          require("99").stop_all_requests()
-        end,
-        mode = { "n", "v" },
-        desc = "LLM: stop all",
-      },
-    },
-    config = function()
-      local _99 = require "99"
-      _99.setup {
-        logger = {
-          level = _99.DEBUG,
-          path = "/tmp/" .. vim.fs.basename(vim.uv.cwd()) .. ".99.debug",
-          print_on_error = true,
-        },
-        completion = { custom_rules = { "scratch/custom_rules/" }, source = "cmp" },
-        md_files = { "AGENT.md" },
-      }
-    end,
-  },
-
   -- Git integration
   {
     "lewis6991/gitsigns.nvim",
@@ -165,175 +113,43 @@ return {
     end,
   },
 
-  -- AI Assistant (Autonomous/YOLO)
+  -- AI Assistant (Claude Code)
   {
-    "sudo-tee/opencode.nvim",
-    event = "VeryLazy",
+    "coder/claudecode.nvim",
     lazy = false,
-    version = false,
-    opts = {
-      -- Use a small wrapper that preserves your intentional dev binary but
-      -- reports a compatible semantic version to the plugin. The plugin will
-      -- look up this executable on PATH, so keep the wrapper named
-      -- `wrapper-opencode` in a directory that's on your PATH (eg. ~/.local/bin).
-      opencode_executable = vim.fn.executable "wrapper-opencode" == 1 and "wrapper-opencode" or "opencode",
-      -- Hardcoded width for opencode UI
-      window = { layout = "vertical", width = 0.25 },
-      keymap = {
-        input_window = {
-          ["<tab>"] = { "switch_mode", mode = { "n", "i" } }, -- Use tab to switch between plan/build modes
-        },
-        output_window = {
-          ["<tab>"] = { "switch_mode", mode = { "n", "i" } }, -- Use tab to switch between plan/build modes
-        },
-      },
-      ui = {
-        window_width = 0.25,
-        output = {
-          tools = {
-            show_output = true,           -- show diffs, tool outputs (file changes)
-            show_reasoning_output = true, -- show inner reasoning / dialog
-          },
-          rendering = {
-            -- keep default markdown renderer active so output buffers render nicely
-            on_data_rendered = nil,
-          },
-        },
-      },
-      context = {
-        diagnostics = {
-          hint = true,
-        },
-      },
-      -- keymap and ui are now above; no duplicates
-      debug = {
-        enabled = false, -- Enable debug messages in the opencode output window
-        capture_streamed_events = false,
-        show_ids = true,
-        quick_chat = { keep_session = false, set_active_session = false },
-      },
-    },
-    config = function(_, opts)
-      require("opencode").setup(opts)
-
-      local ok_base, base_context = pcall(require, "opencode.context.base_context")
-      local ok_config, opencode_config = pcall(require, "opencode.config")
-      local ok_state, opencode_state = pcall(require, "opencode.state")
-      if not (ok_base and ok_config and ok_state) then
-        return
-      end
-
-      if base_context._supports_hint_diagnostics then
-        return
-      end
-      base_context._supports_hint_diagnostics = true
-
-      local original_get_diagnostics = base_context.get_diagnostics
-
-      local function diag_key(diag)
-        return table.concat({
-          tostring(diag.lnum),
-          tostring(diag.col),
-          tostring(diag.end_lnum),
-          tostring(diag.end_col),
-          tostring(diag.severity),
-          tostring(diag.message),
-          tostring(diag.source),
-          tostring(diag.code),
-        }, ":")
-      end
-
-      local function collect_hint_diagnostics(buf, only_closest, ranges)
-        local hint_diags = {}
-
-        local function append(opts_)
-          for _, diag in ipairs(vim.diagnostic.get(buf, opts_)) do
-            table.insert(hint_diags, diag)
-          end
-        end
-
-        if only_closest then
-          if ranges then
-            for _, r in ipairs(ranges) do
-              for line_num = r.start_line, r.end_line do
-                append { lnum = line_num, severity = { vim.diagnostic.severity.HINT } }
-              end
-            end
-          else
-            local win = vim.fn.win_findbuf(buf)[1]
-            local cursor_pos = vim.fn.getcurpos(win)
-            append { lnum = cursor_pos[2] - 1, severity = { vim.diagnostic.severity.HINT } }
-          end
-        else
-          append { severity = { vim.diagnostic.severity.HINT } }
-        end
-
-        return hint_diags
-      end
-
-      base_context.get_diagnostics = function(buf, context_config, range)
-        local diagnostics, ranges = original_get_diagnostics(buf, context_config, range)
-        if diagnostics == nil then
-          return nil, ranges
-        end
-
-        local current_conf = vim.tbl_get(opencode_state, "current_context_config", "diagnostics") or {}
-        local global_conf = vim.tbl_get(opencode_config, "context", "diagnostics") or {}
-        local override_conf = context_config and vim.tbl_get(context_config, "diagnostics") or {}
-        local diagnostic_conf = vim.tbl_deep_extend("force", global_conf, current_conf, override_conf)
-
-        if not diagnostic_conf.hint then
-          return diagnostics, ranges
-        end
-
-        local hint_diags = collect_hint_diagnostics(buf, diagnostic_conf.only_closest, ranges)
-        if #hint_diags == 0 then
-          return diagnostics, ranges
-        end
-
-        local seen = {}
-        for _, diag in ipairs(diagnostics) do
-          seen[diag_key(diag)] = true
-        end
-
-        for _, diag in ipairs(hint_diags) do
-          local normalized = {
-            message = diag.message,
-            severity = diag.severity,
-            lnum = diag.lnum,
-            col = diag.col,
-            end_lnum = diag.end_lnum,
-            end_col = diag.end_col,
-            source = diag.source,
-            code = diag.code,
-            user_data = diag.user_data,
-          }
-
-          local key = diag_key(normalized)
-          if not seen[key] then
-            table.insert(diagnostics, normalized)
-            seen[key] = true
-          end
-        end
-
-        return diagnostics, ranges
-      end
-    end,
     dependencies = {
-      "stevearc/dressing.nvim",
-      "nvim-lua/plenary.nvim",
-      "MunifTanjim/nui.nvim",
-      "hrsh7th/nvim-cmp",
-      "nvim-tree/nvim-web-devicons",
-      -- Recommended renderer so opencode output (markdown/diffs) is nicely shown
+      "folke/snacks.nvim",
       {
         "MeanderingProgrammer/render-markdown.nvim",
         opts = {
           anti_conceal = { enabled = false },
-          file_types = { "markdown", "opencode_output" },
+          file_types = { "markdown" },
         },
-        ft = { "markdown", "Avante", "copilot-chat", "opencode_output" },
+        ft = { "markdown", "Avante", "copilot-chat" },
       },
+    },
+    opts = {
+      terminal = {
+        split_side = "right",
+        split_width_percentage = 0.25,
+      },
+    },
+    keys = {
+      { "<leader>ac", "<cmd>ClaudeCode<cr>",            desc = "Toggle Claude Code" },
+      { "<leader>af", "<cmd>ClaudeCodeFocus<cr>",        desc = "Focus Claude Code" },
+      { "<leader>ar", "<cmd>ClaudeCode --resume<cr>",    desc = "Resume Claude" },
+      { "<leader>aC", "<cmd>ClaudeCode --continue<cr>",  desc = "Continue Claude" },
+      { "<leader>am", "<cmd>ClaudeCodeSelectModel<cr>",  desc = "Select Claude model" },
+      { "<leader>ab", "<cmd>ClaudeCodeAdd %<cr>",        desc = "Add current buffer" },
+      { "<leader>as", "<cmd>ClaudeCodeSend<cr>",         mode = "v", desc = "Send selection to Claude" },
+      {
+        "<leader>as",
+        "<cmd>ClaudeCodeTreeAdd<cr>",
+        desc = "Add file from tree",
+        ft = { "NvimTree", "neo-tree", "oil", "minifiles", "netrw" },
+      },
+      { "<leader>aa", "<cmd>ClaudeCodeDiffAccept<cr>",   desc = "Accept diff" },
+      { "<leader>ad", "<cmd>ClaudeCodeDiffDeny<cr>",     desc = "Deny diff" },
     },
   },
 

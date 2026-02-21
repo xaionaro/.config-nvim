@@ -32,31 +32,9 @@ vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
   end,
 })
 
--- Auto-enter insert mode when focusing opencode input
--- Also auto-focus input when focusing output (logs)
-vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter" }, {
-  desc = "Opencode focus management",
-  callback = function()
-    local ft = vim.bo.filetype
-    if ft == "opencode" then
-      vim.schedule(function()
-        vim.cmd "startinsert!"
-      end)
-    elseif ft == "opencode_output" then
-      -- If focusing output, find input window and focus it
-      for _, win in ipairs(vim.api.nvim_list_wins()) do
-        local buf = vim.api.nvim_win_get_buf(win)
-        if vim.api.nvim_get_option_value("filetype", { buf = buf }) == "opencode" then
-          vim.api.nvim_set_current_win(win)
-          break
-        end
-      end
-    end
-  end,
-})
 
 -- AI completion auto-import for Go files
--- When AI (copilot/99) completes, trigger gopls to add imports
+-- When AI (copilot) completes, trigger gopls to add imports
 local ai_import_timer = nil
 vim.api.nvim_create_autocmd("CompleteDone", {
   desc = "Auto-add imports after AI completion in Go",
@@ -73,7 +51,7 @@ vim.api.nvim_create_autocmd("CompleteDone", {
       return
     end
 
-    local is_ai = source == "copilot" or source == "99"
+    local is_ai = source == "copilot"
     if not is_ai then
       return
     end

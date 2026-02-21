@@ -45,13 +45,11 @@ nvim
 
 | Plugin | Keybinding | Description |
 |--------|-----------|-------------|
-| `opencode.nvim` | `<Tab>` | Switch Plan/Build mode |
+| `claudecode.nvim` | `<leader>ac` | Toggle Claude Code |
+| `claudecode.nvim` | `<leader>as` | Send selection to Claude (visual) |
+| `claudecode.nvim` | `<leader>ab` | Add current buffer to Claude |
 | `CopilotChat` | `<leader>ccw` | Toggle Copilot chat panel |
 | `CopilotChat` | `<C-i>` | YOLO inline execution |
-| `99` | `<leader>ap` | Fill function with prompt |
-| `99` | `<leader>af` | Fill function |
-| `99` | `<leader>as` | Stop all LLM requests |
-
 Copilot suggestions: `<S-CR>` to accept, `<C-Right>` for word, `<C-Down>` for line.
 
 ### 2. VS Code-like Navigation
