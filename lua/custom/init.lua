@@ -20,7 +20,8 @@ M.setup = function()
   vim.opt.textwidth = 120
   vim.opt.colorcolumn = "120"
   vim.api.nvim_set_hl(0, "ColorColumn", { bg = "#0F0F0F" })
-  vim.opt.signcolumn = "yes:3"
+  vim.opt.signcolumn = "yes:2"
+  vim.opt.statuscolumn = "%s%l "
 
   -- Interpret .txt files as markdown for highlighting and LSP features
   vim.filetype.add {

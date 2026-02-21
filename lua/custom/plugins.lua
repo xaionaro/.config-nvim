@@ -603,7 +603,7 @@ return {
         always_show = true,
         visibility = "always",
         base = "left",
-        column = 1,
+        column = 2,
         winblend = 70,
         winblend_gui = 70,
         zindex = 1,
@@ -619,7 +619,6 @@ return {
           vim.diagnostic.severity.HINT,
         },
       }
-      vim.g.scrollview_signs_scrollbar_offset_always = true
       -- Enable signs for diagnostics, search results, and git changes
       require("scrollview.contrib.gitsigns").setup {
         add_highlight = "ScrollViewGitSignsAdd",
