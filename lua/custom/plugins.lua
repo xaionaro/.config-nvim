@@ -323,8 +323,7 @@ return {
 
       local ensure = {}
       for _, server in ipairs(lspconfig.servers) do
-        local mason_name = lspconfig.mason_package_map[server]
-        table.insert(ensure, mason_name or server)
+        table.insert(ensure, server)
       end
 
       local ok_ml, ml = pcall(require, "mason-lspconfig")
