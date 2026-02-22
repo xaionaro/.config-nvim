@@ -214,7 +214,7 @@ M.setup = function()
         end
         -- If we are here, only sidebars or special windows are left.
         if #wins > 0 then
-          vim.cmd "qa"
+          vim.cmd "qa!"
         end
       end)
     end,
