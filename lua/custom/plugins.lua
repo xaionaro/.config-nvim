@@ -342,6 +342,9 @@ return {
     dependencies = { "nvim-tree/nvim-web-devicons" },
     keys = { { "<leader>e", "<Cmd>NvimTreeToggle<CR>", desc = "Explorer (NvimTree)" } },
     opts = {
+      notify = {
+        absolute_path = false,
+      },
       view = {
         width = 25,
         side = "left",
@@ -387,6 +390,13 @@ return {
       },
     },
     config = function(_, opts)
+      opts.on_attach = function(bufnr)
+        local api = require("nvim-tree.api")
+        api.config.mappings.default_on_attach(bufnr)
+        vim.keymap.set("n", "<RightMouse>", function()
+          require("custom.nvimtree-context-menu").open()
+        end, { buffer = bufnr, desc = "Context Menu" })
+      end
       require("nvim-tree").setup(opts)
     end,
   },
