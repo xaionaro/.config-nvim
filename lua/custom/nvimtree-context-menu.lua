@@ -22,26 +22,27 @@ function M.open()
   end
 
   local items = {
-    { label = "Open", shortcuts = { "<CR>" }, action = api.node.open.edit },
-    { label = "Open in Split", shortcuts = { "<C-x>" }, action = api.node.open.horizontal },
-    { label = "Open in VSplit", shortcuts = { "<C-v>" }, action = api.node.open.vertical },
-    { label = "Open in Tab", shortcuts = { "<C-t>" }, action = api.node.open.tab },
+    { label = "Open", keys = { "<CR>" }, hint = "Enter", action = api.node.open.edit },
+    { label = "Open in Split", keys = { "<C-x>" }, hint = "Ctrl+X", action = api.node.open.horizontal },
+    { label = "Open in VSplit", keys = { "<C-v>" }, hint = "Ctrl+V", action = api.node.open.vertical },
+    { label = "Open in Tab", keys = { "<C-t>" }, hint = "Ctrl+T", action = api.node.open.tab },
     { separator = true },
-    { label = "Rename", shortcuts = { "r" }, action = api.fs.rename },
-    { label = "Copy", shortcuts = { "c" }, action = api.fs.copy.node },
-    { label = "Cut", shortcuts = { "x" }, action = api.fs.cut },
-    { label = "Paste", shortcuts = { "p" }, action = api.fs.paste },
-    { label = "Delete", shortcuts = { "d" }, action = api.fs.remove },
-    { label = "Trash", shortcuts = { "D" }, action = api.fs.trash },
+    { label = "Rename", keys = { "r" }, hint = "r", action = api.fs.rename },
+    { label = "Copy", keys = { "c" }, hint = "c", action = api.fs.copy.node },
+    { label = "Cut", keys = { "x" }, hint = "x", action = api.fs.cut },
+    { label = "Paste", keys = { "p" }, hint = "p", action = api.fs.paste },
+    { label = "Delete", keys = { "d" }, hint = "d", action = api.fs.remove },
+    { label = "Trash", keys = { "D" }, hint = "D", action = api.fs.trash },
     { separator = true },
-    { label = "Copy Filename", shortcuts = { "y" }, action = api.fs.copy.filename },
-    { label = "Copy Relative Path", shortcuts = { "Y" }, action = api.fs.copy.relative_path },
-    { label = "Copy Absolute Path", shortcuts = { "gy" }, action = api.fs.copy.absolute_path },
+    { label = "Copy Filename", keys = { "y" }, hint = "y", action = api.fs.copy.filename },
+    { label = "Copy Relative Path", keys = { "Y" }, hint = "Y", action = api.fs.copy.relative_path },
+    { label = "Copy Absolute Path", keys = { "gy" }, hint = "gy", action = api.fs.copy.absolute_path },
     { separator = true },
-    { label = "New File", shortcuts = { "a" }, action = api.fs.create },
+    { label = "New File", keys = { "a" }, hint = "a", action = api.fs.create },
     {
       label = "New Folder",
-      shortcuts = { "A" },
+      keys = { "A" },
+      hint = "A",
       action = function()
         if not parent_dir then return end
         vim.ui.input({ prompt = "Create folder: " }, function(name)
@@ -55,12 +56,13 @@ function M.open()
 
   -- Build display lines with right-aligned shortcut hints.
   local lines = {}
+  local hint_positions = {} -- line number -> { col, length } for highlighting
   local actionable = {} -- line number -> items index
   local menu_width = 32
 
   for _, item in ipairs(items) do
     if not item.separator then
-      local hint = item.shortcuts and item.shortcuts[1] or ""
+      local hint = item.hint or ""
       local needed = vim.fn.strdisplaywidth("  " .. item.label) + vim.fn.strdisplaywidth(hint) + 4
       if needed > menu_width then menu_width = needed end
     end
@@ -70,11 +72,15 @@ function M.open()
     if item.separator then
       table.insert(lines, " " .. string.rep("─", menu_width - 2) .. " ")
     else
-      local hint = item.shortcuts and item.shortcuts[1] or ""
+      local hint = item.hint or ""
       local label = "  " .. item.label
       local pad = menu_width - vim.fn.strdisplaywidth(label) - vim.fn.strdisplaywidth(hint) - 2
-      table.insert(lines, label .. string.rep(" ", pad) .. hint .. "  ")
+      local line = label .. string.rep(" ", pad) .. hint .. "  "
+      table.insert(lines, line)
       actionable[#lines] = i
+      if #hint > 0 then
+        hint_positions[#lines] = { col = #label + pad, length = #hint }
+      end
     end
   end
 
@@ -83,6 +89,12 @@ function M.open()
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
   vim.bo[buf].modifiable = false
   vim.bo[buf].bufhidden = "wipe"
+
+  -- Highlight hint keys in a distinct color.
+  local hl_ns = vim.api.nvim_create_namespace("nvimtree_ctx_menu")
+  for line_nr, pos in pairs(hint_positions) do
+    vim.api.nvim_buf_add_highlight(buf, hl_ns, "Comment", line_nr - 1, pos.col, pos.col + pos.length)
+  end
 
   -- Position at mouse, clamped to editor bounds.
   local row = mouse.screenrow - 1
@@ -174,11 +186,11 @@ function M.open()
 
   vim.keymap.set("n", "<RightMouse>", close, map_opts)
 
-  -- Direct shortcut keys from the menu hints.
+  -- Direct shortcut keys from the menu items.
   for _, item_idx in pairs(actionable) do
     local item = items[item_idx]
-    if item.shortcuts then
-      for _, key in ipairs(item.shortcuts) do
+    if item.keys then
+      for _, key in ipairs(item.keys) do
         if key ~= "<CR>" then
           vim.keymap.set("n", key, function() execute(item_idx) end, map_opts)
         end

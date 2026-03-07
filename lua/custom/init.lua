@@ -3,6 +3,7 @@ local M = {}
 
 M.setup = function()
   vim.opt.whichwrap = ""
+  vim.opt.equalalways = false
 
   local map = vim.keymap.set
   map("n", ";", ":", { desc = "CMD enter command mode" })
@@ -117,6 +118,95 @@ M.setup = function()
   })
   apply_highlights()
 
+  -- Sidebar width persistence across restarts.
+  local sidebar_state_file = vim.fn.stdpath("state") .. "/sidebar_widths.json"
+
+  local function get_sidebar_widths()
+    local widths = {}
+    for _, win in ipairs(vim.api.nvim_list_wins()) do
+      if vim.api.nvim_win_is_valid(win) then
+        local buf = vim.api.nvim_win_get_buf(win)
+        local ft = vim.api.nvim_get_option_value("filetype", { buf = buf })
+        if ft == "NvimTree" then
+          widths.nvimtree = vim.api.nvim_win_get_width(win)
+        end
+      end
+    end
+    local ok, claude_term = pcall(require, "claudecode.terminal")
+    if ok then
+      local claude_bufnr = claude_term.get_active_terminal_bufnr()
+      if claude_bufnr then
+        for _, win in ipairs(vim.api.nvim_list_wins()) do
+          if vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_buf(win) == claude_bufnr then
+            widths.claude = vim.api.nvim_win_get_width(win)
+            break
+          end
+        end
+      end
+    end
+    return widths
+  end
+
+  local function restore_claude_width()
+    local f = io.open(sidebar_state_file, "r")
+    if not f then return end
+    local ok, data = pcall(vim.json.decode, f:read("*a"))
+    f:close()
+    if not ok or type(data) ~= "table" or type(data.claude) ~= "number" then return end
+    local ok2, claude_term = pcall(require, "claudecode.terminal")
+    if not ok2 then return end
+    local claude_bufnr = claude_term.get_active_terminal_bufnr()
+    if not claude_bufnr then return end
+    for _, win in ipairs(vim.api.nvim_list_wins()) do
+      if vim.api.nvim_win_get_buf(win) == claude_bufnr then
+        vim.api.nvim_win_set_width(win, data.claude)
+        break
+      end
+    end
+  end
+
+  local function has_editor_window()
+    for _, win in ipairs(vim.api.nvim_list_wins()) do
+      if vim.api.nvim_win_is_valid(win) then
+        local buf = vim.api.nvim_win_get_buf(win)
+        local ft = vim.api.nvim_get_option_value("filetype", { buf = buf })
+        local bt = vim.api.nvim_get_option_value("buftype", { buf = buf })
+        if ft ~= "NvimTree" and bt ~= "terminal" then
+          return true
+        end
+      end
+    end
+    return false
+  end
+
+  local function save_sidebar_widths()
+    if not has_editor_window() then return end
+    local widths = get_sidebar_widths()
+    if not next(widths) then return end
+    local f = io.open(sidebar_state_file, "w")
+    if f then
+      f:write(vim.json.encode(widths))
+      f:close()
+    end
+  end
+
+  -- Save on exit (only if editor windows are still present, to avoid saving
+  -- inflated widths after main window closed and sidebars expanded).
+  vim.api.nvim_create_autocmd("VimLeavePre", {
+    group = vim.api.nvim_create_augroup("SaveSidebarWidths", { clear = true }),
+    callback = save_sidebar_widths,
+  })
+
+  -- Also save on resize (debounced) so widths are captured during normal use.
+  local resize_timer = vim.uv.new_timer()
+  vim.api.nvim_create_autocmd("WinResized", {
+    group = vim.api.nvim_create_augroup("SaveSidebarWidthsOnResize", { clear = true }),
+    callback = function()
+      resize_timer:stop()
+      resize_timer:start(1000, 0, vim.schedule_wrap(save_sidebar_widths))
+    end,
+  })
+
   -- Auto-open NvimTree on startup
   vim.api.nvim_create_autocmd("VimEnter", {
     group = vim.api.nvim_create_augroup("AutoOpenSidebars", { clear = true }),
@@ -154,6 +244,7 @@ M.setup = function()
           else
             focus_main_window()
           end
+          restore_claude_width()
         end)
       end)
     end,

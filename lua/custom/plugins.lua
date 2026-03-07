@@ -386,10 +386,20 @@ return {
       actions = {
         open_file = {
           quit_on_open = false,
+          resize_window = false,
         },
       },
     },
     config = function(_, opts)
+      -- Restore saved nvim-tree width from previous session.
+      local f = io.open(vim.fn.stdpath("state") .. "/sidebar_widths.json", "r")
+      if f then
+        local ok, data = pcall(vim.json.decode, f:read("*a"))
+        f:close()
+        if ok and type(data) == "table" and type(data.nvimtree) == "number" then
+          opts.view.width = data.nvimtree
+        end
+      end
       opts.on_attach = function(bufnr)
         local api = require("nvim-tree.api")
         api.config.mappings.default_on_attach(bufnr)
