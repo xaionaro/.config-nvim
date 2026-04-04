@@ -10,13 +10,13 @@ return {
       highlight = { enable = true },
     },
     config = function(_, opts)
-      local ok, configs = pcall(require, "nvim-treesitter.configs")
+      local ok, ts_config = pcall(require, "nvim-treesitter.config")
       if not ok then
         vim.notify("nvim-treesitter not installed: run :Lazy sync", vim.log.levels.WARN)
         return
       end
 
-      configs.setup(opts)
+      ts_config.setup(opts)
 
       if opts.highlight and opts.highlight.enable then
         vim.api.nvim_create_autocmd("FileType", {
@@ -321,9 +321,15 @@ return {
         return
       end
 
+      -- Only ask Mason to install servers it can handle.
       local ensure = {}
       for _, server in ipairs(lspconfig.servers) do
-        table.insert(ensure, server)
+        if lspconfig.mason_package_map[server] then
+          local ok_pkg, pkg = pcall(require("mason-registry").get_package, lspconfig.mason_package_map[server])
+          if ok_pkg and pkg and pkg:is_installable() then
+            table.insert(ensure, server)
+          end
+        end
       end
 
       local ok_ml, ml = pcall(require, "mason-lspconfig")

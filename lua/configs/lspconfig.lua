@@ -31,6 +31,7 @@ local mason_package_map = {
 for _, name in ipairs(servers) do
   -- Load custom options from lua/custom/lsp/<name>.lua
   local ok, custom_opts = pcall(require, "custom.lsp." .. name)
+  if ok and custom_opts.disabled then goto continue end
   local opts = vim.tbl_extend("force", { single_file_support = true }, ok and custom_opts or {})
 
   -- Mandatory synchronous root discovery for gopls to prevent startup crashes.
@@ -55,6 +56,7 @@ for _, name in ipairs(servers) do
       end
     end,
   })
+  ::continue::
 end
 
 return {
