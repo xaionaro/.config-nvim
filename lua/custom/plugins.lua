@@ -292,19 +292,28 @@ return {
         return
       end
 
+      local wanted = {
+        "shfmt",
+        "prettier",
+        "stylua",
+        "black",
+        "gofumpt",
+        "rustfmt",
+        "clang-format",
+        "buf",
+        "json-lsp",
+      }
+      local reg = require("mason-registry")
+      local installable = {}
+      for _, name in ipairs(wanted) do
+        local ok_pkg, pkg = pcall(reg.get_package, name)
+        if ok_pkg and pkg and pkg:is_installable() then
+          table.insert(installable, name)
+        end
+      end
+
       mti.setup {
-        ensure_installed = {
-          -- formatters used by conform
-          "shfmt",
-          "prettier",
-          "stylua",
-          "black",
-          "gofumpt",
-          "rustfmt",
-          "clang-format",
-          "buf",
-          "json-lsp",
-        },
+        ensure_installed = installable,
         run_on_start = true,
         auto_update = false,
       }
