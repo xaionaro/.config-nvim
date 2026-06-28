@@ -128,6 +128,19 @@ M.setup = function()
 
   -- Sidebar width persistence across restarts.
   local sidebar_state_file = vim.fn.stdpath("state") .. "/sidebar_widths.json"
+  local min_codex_width = 24
+
+  local function default_codex_width()
+    return math.max(min_codex_width, math.floor(vim.o.columns * 0.25))
+  end
+
+  local function normalize_codex_width(width)
+    if type(width) ~= "number" or width < min_codex_width then
+      return default_codex_width()
+    end
+    local max_width = math.max(min_codex_width, vim.o.columns - 30)
+    return math.min(width, max_width)
+  end
 
   local function get_sidebar_widths()
     local widths = {}
@@ -146,7 +159,10 @@ M.setup = function()
       if codex_bufnr then
         for _, win in ipairs(vim.api.nvim_list_wins()) do
           if vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_buf(win) == codex_bufnr then
-            widths.codex = vim.api.nvim_win_get_width(win)
+            local width = vim.api.nvim_win_get_width(win)
+            if width >= min_codex_width then
+              widths.codex = width
+            end
             break
           end
         end
@@ -165,14 +181,14 @@ M.setup = function()
     if type(codex_width) ~= "number" then
       codex_width = data.claude
     end
-    if type(codex_width) ~= "number" then return end
+    codex_width = normalize_codex_width(codex_width)
     local ok2, codex_term = pcall(require, "custom.codex_terminal")
     if not ok2 then return end
     local codex_bufnr = codex_term.get_active_terminal_bufnr()
     if not codex_bufnr then return end
     for _, win in ipairs(vim.api.nvim_list_wins()) do
       if vim.api.nvim_win_get_buf(win) == codex_bufnr then
-        vim.api.nvim_win_set_width(win, codex_width)
+        pcall(vim.api.nvim_win_set_width, win, codex_width)
         break
       end
     end
