@@ -30,6 +30,7 @@ nvim
 │   │   └── conform_opts.lua # Formatting options
 │   └── custom/
 │       ├── init.lua      # Custom module loader
+│       ├── codex_terminal.lua # Codex CLI terminal commands
 │       ├── plugins.lua   # Plugin definitions
 │       └── lsp/          # Per-language LSP configs
 │           ├── gopls.lua
@@ -43,11 +44,13 @@ nvim
 
 ### 1. AI Assistants
 
-| Plugin | Keybinding | Description |
-|--------|-----------|-------------|
-| `claudecode.nvim` | `<leader>ac` | Toggle Claude Code |
-| `claudecode.nvim` | `<leader>as` | Send selection to Claude (visual) |
-| `claudecode.nvim` | `<leader>ab` | Add current buffer to Claude |
+| Assistant | Keybinding | Description |
+|-----------|-----------|-------------|
+| `Codex CLI` | `<leader>ac` | Open Codex terminal |
+| `Codex CLI` | `<leader>af` | Focus Codex terminal |
+| `Codex CLI` | `<leader>ar` | Resume Codex session |
+| `Codex CLI` | `<leader>aC` | Continue last Codex session |
+| `Codex CLI` | `<leader>ax` | Close Codex terminal |
 | `CopilotChat` | `<leader>ccw` | Toggle Copilot chat panel |
 | `CopilotChat` | `<C-i>` | YOLO inline execution |
 Copilot suggestions: `<S-CR>` to accept, `<C-Right>` for word, `<C-Down>` for line.
@@ -98,6 +101,7 @@ Mason auto-installs: `lua_ls`, `stylua`, `prettier`, `buf`, `marksman`, `gopls`,
 - Neovim 0.11+
 - Git
 - A Nerd Font (for icons)
+- Codex CLI (`codex` on `PATH`)
 - Node.js (for Copilot)
 
 ## Customization

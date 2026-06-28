@@ -9,6 +9,14 @@ M.setup = function()
   map("n", ";", ":", { desc = "CMD enter command mode" })
   map("i", "jk", "<ESC>")
 
+  local codex_terminal = require "custom.codex_terminal"
+  codex_terminal.setup()
+  map("n", "<leader>ac", "<cmd>Codex<cr>", { desc = "Open Codex" })
+  map("n", "<leader>af", "<cmd>CodexFocus<cr>", { desc = "Focus Codex" })
+  map("n", "<leader>ar", "<cmd>CodexResume<cr>", { desc = "Resume Codex" })
+  map("n", "<leader>aC", "<cmd>CodexContinue<cr>", { desc = "Continue Codex" })
+  map("n", "<leader>ax", "<cmd>CodexClose<cr>", { desc = "Close Codex" })
+
   -- Move between windows using Shift + Arrow keys
   map({ "n", "i", "v", "t" }, "<S-Left>", "<C-\\><C-N><C-w>h", { desc = "Move to left window" })
   map({ "n", "i", "v", "t" }, "<S-Right>", "<C-\\><C-N><C-w>l", { desc = "Move to right window" })
@@ -132,13 +140,13 @@ M.setup = function()
         end
       end
     end
-    local ok, claude_term = pcall(require, "claudecode.terminal")
+    local ok, codex_term = pcall(require, "custom.codex_terminal")
     if ok then
-      local claude_bufnr = claude_term.get_active_terminal_bufnr()
-      if claude_bufnr then
+      local codex_bufnr = codex_term.get_active_terminal_bufnr()
+      if codex_bufnr then
         for _, win in ipairs(vim.api.nvim_list_wins()) do
-          if vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_buf(win) == claude_bufnr then
-            widths.claude = vim.api.nvim_win_get_width(win)
+          if vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_buf(win) == codex_bufnr then
+            widths.codex = vim.api.nvim_win_get_width(win)
             break
           end
         end
@@ -147,19 +155,24 @@ M.setup = function()
     return widths
   end
 
-  local function restore_claude_width()
+  local function restore_codex_width()
     local f = io.open(sidebar_state_file, "r")
     if not f then return end
     local ok, data = pcall(vim.json.decode, f:read("*a"))
     f:close()
-    if not ok or type(data) ~= "table" or type(data.claude) ~= "number" then return end
-    local ok2, claude_term = pcall(require, "claudecode.terminal")
+    if not ok or type(data) ~= "table" then return end
+    local codex_width = data.codex
+    if type(codex_width) ~= "number" then
+      codex_width = data.claude
+    end
+    if type(codex_width) ~= "number" then return end
+    local ok2, codex_term = pcall(require, "custom.codex_terminal")
     if not ok2 then return end
-    local claude_bufnr = claude_term.get_active_terminal_bufnr()
-    if not claude_bufnr then return end
+    local codex_bufnr = codex_term.get_active_terminal_bufnr()
+    if not codex_bufnr then return end
     for _, win in ipairs(vim.api.nvim_list_wins()) do
-      if vim.api.nvim_win_get_buf(win) == claude_bufnr then
-        vim.api.nvim_win_set_width(win, data.claude)
+      if vim.api.nvim_win_get_buf(win) == codex_bufnr then
+        vim.api.nvim_win_set_width(win, codex_width)
         break
       end
     end
@@ -207,22 +220,26 @@ M.setup = function()
     end,
   })
 
-  -- Auto-open NvimTree on startup
+  -- Auto-open sidebars on startup
   vim.api.nvim_create_autocmd("VimEnter", {
     group = vim.api.nvim_create_augroup("AutoOpenSidebars", { clear = true }),
     callback = function()
+      if #vim.api.nvim_list_uis() == 0 then
+        return
+      end
+
       local main_win = vim.api.nvim_get_current_win()
 
       pcall(function()
-        require("lazy").load { plugins = { "nvim-tree.lua", "claudecode.nvim" } }
+        require("lazy").load { plugins = { "nvim-tree.lua" } }
       end)
       pcall(function()
         vim.cmd "redraw"
       end)
 
-      -- Open Claude Code (on the right)
+      -- Open Codex (on the right)
       pcall(function()
-        vim.cmd "ClaudeCode"
+        vim.cmd "Codex"
       end)
       if vim.api.nvim_win_is_valid(main_win) then
         vim.api.nvim_set_current_win(main_win)
@@ -244,7 +261,7 @@ M.setup = function()
           else
             focus_main_window()
           end
-          restore_claude_width()
+          restore_codex_width()
         end)
       end)
     end,

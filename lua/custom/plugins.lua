@@ -113,44 +113,14 @@ return {
     end,
   },
 
-  -- AI Assistant (Claude Code)
+  -- Markdown rendering for chat and markdown buffers
   {
-    "coder/claudecode.nvim",
-    lazy = false,
-    dependencies = {
-      "folke/snacks.nvim",
-      {
-        "MeanderingProgrammer/render-markdown.nvim",
-        opts = {
-          anti_conceal = { enabled = false },
-          file_types = { "markdown" },
-        },
-        ft = { "markdown", "Avante", "copilot-chat" },
-      },
-    },
+    "MeanderingProgrammer/render-markdown.nvim",
     opts = {
-      terminal = {
-        split_side = "right",
-        split_width_percentage = 0.25,
-      },
+      anti_conceal = { enabled = false },
+      file_types = { "markdown" },
     },
-    keys = {
-      { "<leader>ac", "<cmd>ClaudeCode<cr>",            desc = "Toggle Claude Code" },
-      { "<leader>af", "<cmd>ClaudeCodeFocus<cr>",        desc = "Focus Claude Code" },
-      { "<leader>ar", "<cmd>ClaudeCode --resume<cr>",    desc = "Resume Claude" },
-      { "<leader>aC", "<cmd>ClaudeCode --continue<cr>",  desc = "Continue Claude" },
-      { "<leader>am", "<cmd>ClaudeCodeSelectModel<cr>",  desc = "Select Claude model" },
-      { "<leader>ab", "<cmd>ClaudeCodeAdd %<cr>",        desc = "Add current buffer" },
-      { "<leader>as", "<cmd>ClaudeCodeSend<cr>",         mode = "v", desc = "Send selection to Claude" },
-      {
-        "<leader>as",
-        "<cmd>ClaudeCodeTreeAdd<cr>",
-        desc = "Add file from tree",
-        ft = { "NvimTree", "neo-tree", "oil", "minifiles", "netrw" },
-      },
-      { "<leader>aa", "<cmd>ClaudeCodeDiffAccept<cr>",   desc = "Accept diff" },
-      { "<leader>ad", "<cmd>ClaudeCodeDiffDeny<cr>",     desc = "Deny diff" },
-    },
+    ft = { "markdown", "Avante", "copilot-chat" },
   },
 
   -- Copilot Chat (Backup/Aggressive mode)
