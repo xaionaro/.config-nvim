@@ -9,13 +9,12 @@ M.setup = function()
   map("n", ";", ":", { desc = "CMD enter command mode" })
   map("i", "jk", "<ESC>")
 
-  local codex_terminal = require "custom.codex_terminal"
-  codex_terminal.setup()
-  map("n", "<leader>ac", "<cmd>Codex<cr>", { desc = "Open Codex" })
-  map("n", "<leader>af", "<cmd>CodexFocus<cr>", { desc = "Focus Codex" })
-  map("n", "<leader>ar", "<cmd>CodexResume<cr>", { desc = "Resume Codex" })
-  map("n", "<leader>aC", "<cmd>CodexContinue<cr>", { desc = "Continue Codex" })
-  map("n", "<leader>ax", "<cmd>CodexClose<cr>", { desc = "Close Codex" })
+  local opencode_terminal = require "custom.opencode_terminal"
+  opencode_terminal.setup()
+  map("n", "<leader>ac", "<cmd>Opencode<cr>", { desc = "Open opencode" })
+  map("n", "<leader>af", "<cmd>OpencodeFocus<cr>", { desc = "Focus opencode" })
+  map("n", "<leader>aC", "<cmd>OpencodeContinue<cr>", { desc = "Continue opencode" })
+  map("n", "<leader>ax", "<cmd>OpencodeClose<cr>", { desc = "Close opencode" })
 
   -- Move between windows using Shift + Arrow keys
   map({ "n", "i", "v", "t" }, "<S-Left>", "<C-\\><C-N><C-w>h", { desc = "Move to left window" })
@@ -128,17 +127,17 @@ M.setup = function()
 
   -- Sidebar width persistence across restarts.
   local sidebar_state_file = vim.fn.stdpath("state") .. "/sidebar_widths.json"
-  local min_codex_width = 24
+  local min_opencode_width = 24
 
-  local function default_codex_width()
-    return math.max(min_codex_width, math.floor(vim.o.columns * 0.25))
+  local function default_opencode_width()
+    return math.max(min_opencode_width, math.floor(vim.o.columns * 0.25))
   end
 
-  local function normalize_codex_width(width)
-    if type(width) ~= "number" or width < min_codex_width then
-      return default_codex_width()
+  local function normalize_opencode_width(width)
+    if type(width) ~= "number" or width < min_opencode_width then
+      return default_opencode_width()
     end
-    local max_width = math.max(min_codex_width, vim.o.columns - 30)
+    local max_width = math.max(min_opencode_width, vim.o.columns - 30)
     return math.min(width, max_width)
   end
 
@@ -153,15 +152,15 @@ M.setup = function()
         end
       end
     end
-    local ok, codex_term = pcall(require, "custom.codex_terminal")
+    local ok, opencode_term = pcall(require, "custom.opencode_terminal")
     if ok then
-      local codex_bufnr = codex_term.get_active_terminal_bufnr()
-      if codex_bufnr then
+      local opencode_bufnr = opencode_term.get_active_terminal_bufnr()
+      if opencode_bufnr then
         for _, win in ipairs(vim.api.nvim_list_wins()) do
-          if vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_buf(win) == codex_bufnr then
+          if vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_buf(win) == opencode_bufnr then
             local width = vim.api.nvim_win_get_width(win)
-            if width >= min_codex_width then
-              widths.codex = width
+            if width >= min_opencode_width then
+              widths.opencode = width
             end
             break
           end
@@ -171,24 +170,27 @@ M.setup = function()
     return widths
   end
 
-  local function restore_codex_width()
+  local function restore_opencode_width()
     local f = io.open(sidebar_state_file, "r")
     if not f then return end
     local ok, data = pcall(vim.json.decode, f:read("*a"))
     f:close()
     if not ok or type(data) ~= "table" then return end
-    local codex_width = data.codex
-    if type(codex_width) ~= "number" then
-      codex_width = data.claude
+    local opencode_width = data.opencode
+    if type(opencode_width) ~= "number" then
+      opencode_width = data.codex
     end
-    codex_width = normalize_codex_width(codex_width)
-    local ok2, codex_term = pcall(require, "custom.codex_terminal")
+    if type(opencode_width) ~= "number" then
+      opencode_width = data.claude
+    end
+    opencode_width = normalize_opencode_width(opencode_width)
+    local ok2, opencode_term = pcall(require, "custom.opencode_terminal")
     if not ok2 then return end
-    local codex_bufnr = codex_term.get_active_terminal_bufnr()
-    if not codex_bufnr then return end
+    local opencode_bufnr = opencode_term.get_active_terminal_bufnr()
+    if not opencode_bufnr then return end
     for _, win in ipairs(vim.api.nvim_list_wins()) do
-      if vim.api.nvim_win_get_buf(win) == codex_bufnr then
-        pcall(vim.api.nvim_win_set_width, win, codex_width)
+      if vim.api.nvim_win_get_buf(win) == opencode_bufnr then
+        pcall(vim.api.nvim_win_set_width, win, opencode_width)
         break
       end
     end
@@ -253,9 +255,9 @@ M.setup = function()
         vim.cmd "redraw"
       end)
 
-      -- Open Codex (on the right)
+      -- Open opencode (on the right)
       pcall(function()
-        vim.cmd "Codex"
+        vim.cmd "Opencode"
       end)
       if vim.api.nvim_win_is_valid(main_win) then
         vim.api.nvim_set_current_win(main_win)
@@ -277,7 +279,7 @@ M.setup = function()
           else
             focus_main_window()
           end
-          restore_codex_width()
+          restore_opencode_width()
         end)
       end)
     end,

@@ -102,7 +102,7 @@ local function open_existing_terminal(bufnr)
 end
 
 function M.open(command, opts)
-  command = command or { "codex" }
+  command = command or { "opencode" }
   opts = opts or {}
 
   local existing = M.get_active_terminal_bufnr()
@@ -111,7 +111,7 @@ function M.open(command, opts)
   end
 
   if not can_start(command) then
-    vim.notify("Unable to start Codex CLI", vim.log.levels.ERROR)
+    vim.notify("Unable to start opencode", vim.log.levels.ERROR)
     return nil
   end
 
@@ -128,7 +128,7 @@ function M.open(command, opts)
 
   vim.bo[bufnr].buflisted = false
   vim.bo[bufnr].bufhidden = "wipe"
-  vim.bo[bufnr].filetype = "codex"
+  vim.bo[bufnr].filetype = "opencode"
 
   local job_opts = {
     term = true,
@@ -141,7 +141,7 @@ function M.open(command, opts)
   }
   local ok, job_id = pcall(vim.fn.jobstart, command, job_opts)
   if not ok or type(job_id) ~= "number" or job_id <= 0 then
-    vim.notify("Unable to start Codex CLI", vim.log.levels.ERROR)
+    vim.notify("Unable to start opencode", vim.log.levels.ERROR)
     close_terminal_resources(bufnr)
     clear_active_if(bufnr)
     return nil
@@ -159,12 +159,8 @@ function M.focus()
   return M.open()
 end
 
-function M.resume()
-  return M.open({ "codex", "resume" }, { replace = true })
-end
-
 function M.continue()
-  return M.open({ "codex", "resume", "--last" }, { replace = true })
+  return M.open({ "opencode", "--continue" }, { replace = true })
 end
 
 function M.setup()
@@ -173,25 +169,21 @@ function M.setup()
   end
   did_setup = true
 
-  vim.api.nvim_create_user_command("Codex", function()
+  vim.api.nvim_create_user_command("Opencode", function()
     M.open()
-  end, { desc = "Open Codex terminal", force = true })
+  end, { desc = "Open opencode terminal", force = true })
 
-  vim.api.nvim_create_user_command("CodexFocus", function()
+  vim.api.nvim_create_user_command("OpencodeFocus", function()
     M.focus()
-  end, { desc = "Focus Codex terminal", force = true })
+  end, { desc = "Focus opencode terminal", force = true })
 
-  vim.api.nvim_create_user_command("CodexResume", function()
-    M.resume()
-  end, { desc = "Run codex resume", force = true })
-
-  vim.api.nvim_create_user_command("CodexContinue", function()
+  vim.api.nvim_create_user_command("OpencodeContinue", function()
     M.continue()
-  end, { desc = "Run codex resume --last", force = true })
+  end, { desc = "Run opencode --continue", force = true })
 
-  vim.api.nvim_create_user_command("CodexClose", function()
+  vim.api.nvim_create_user_command("OpencodeClose", function()
     M.close()
-  end, { desc = "Close Codex terminal", force = true })
+  end, { desc = "Close opencode terminal", force = true })
 end
 
 return M
