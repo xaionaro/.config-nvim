@@ -388,6 +388,19 @@ return {
       opts.on_attach = function(bufnr)
         local api = require("nvim-tree.api")
         api.config.mappings.default_on_attach(bufnr)
+
+        -- After opening a file from the tree, hide the tree panel so the
+        -- editor window takes focus without the sidebar lingering.
+        vim.keymap.set("n", "<CR>", function()
+          local node = api.tree.get_node_under_cursor()
+          if node and node.type == "file" then
+            api.node.open.edit(node)
+            require("custom.panels").hide_current_tree()
+          else
+            api.node.open.edit(node)
+          end
+        end, { buffer = bufnr, desc = "Open file and hide tree" })
+
         vim.keymap.set("n", "<RightMouse>", function()
           require("custom.nvimtree-context-menu").open()
         end, { buffer = bufnr, desc = "Context Menu" })

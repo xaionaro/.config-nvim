@@ -288,6 +288,13 @@ local function save_widths()
   end
 end
 
+function M.hide_current_tree()
+  local win = tree_win()
+  if win then
+    hide_tree(win)
+  end
+end
+
 function M.setup()
   vim.api.nvim_create_autocmd("VimLeavePre", {
     group = vim.api.nvim_create_augroup("SavePanelWidths", { clear = true }),
