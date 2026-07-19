@@ -516,4 +516,16 @@ return {
       })
     end,
   },
+
+  -- nvim MCP server (linw1995) — creates the discovery socket that the
+  -- nvim-lsp-mcp Rust binary connects to, exposing deep LSP queries
+  -- (hover, references, definitions, rename, symbols) to the opencode
+  -- agent via MCP.
+  {
+    "linw1995/nvim-mcp",
+    lazy = false,
+    config = function()
+      require("nvim-mcp").setup {}
+    end,
+  },
 }

@@ -14,6 +14,16 @@ vim.opt.rtp:prepend(lazypath)
 -- Ensure ~/.local/bin is in PATH for tree-sitter-cli
 vim.env.PATH = vim.fn.expand "~/.local/bin" .. ":" .. vim.env.PATH
 
+-- Publish msgpack-RPC socket so MCP servers (opencode agent bridge) can
+-- query nvim's live state: diagnostics, selection, cursor, open buffers.
+if not vim.g.nvim_listen_address then
+  local sock = "/run/user/" .. tostring(vim.uv.getuid()) .. "/nvim-mcp.sock"
+  local ok = pcall(vim.fn.serverstart, sock)
+  if ok then
+    vim.g.nvim_listen_address = sock
+  end
+end
+
 local lazy_config = require "configs.lazy"
 
 -- Ensure Neovim can see system treesitter parsers (your lua.so is here)
