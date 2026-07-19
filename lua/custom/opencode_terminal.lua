@@ -127,7 +127,9 @@ function M.open(command, opts)
   set_terminal_window_options(win)
 
   vim.bo[bufnr].buflisted = false
-  vim.bo[bufnr].bufhidden = "wipe"
+  -- Keep the buffer (and the running job with its scrollback) when the
+  -- window is hidden by panels.lua; explicit close still wipes it.
+  vim.bo[bufnr].bufhidden = "hide"
   vim.bo[bufnr].filetype = "opencode"
 
   local job_opts = {

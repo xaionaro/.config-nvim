@@ -16,9 +16,22 @@ M.setup = function()
   map("n", "<leader>aC", "<cmd>OpencodeContinue<cr>", { desc = "Continue opencode" })
   map("n", "<leader>ax", "<cmd>OpencodeClose<cr>", { desc = "Close opencode" })
 
-  -- Move between windows using Shift + Arrow keys
-  map({ "n", "i", "v", "t" }, "<S-Left>", "<C-\\><C-N><C-w>h", { desc = "Move to left window" })
-  map({ "n", "i", "v", "t" }, "<S-Right>", "<C-\\><C-N><C-w>l", { desc = "Move to right window" })
+  require("custom.panels").setup()
+
+  -- Move between windows using Shift + Arrow keys. At the left/right edge
+  -- this opens the file tree / opencode panel; moving away hides it again.
+  map(
+    { "n", "i", "v", "t" },
+    "<S-Left>",
+    "<C-\\><C-N><Cmd>lua require('custom.panels').move_left()<CR>",
+    { desc = "Move left (opens file tree at edge)" }
+  )
+  map(
+    { "n", "i", "v", "t" },
+    "<S-Right>",
+    "<C-\\><C-N><Cmd>lua require('custom.panels').move_right()<CR>",
+    { desc = "Move right (opens opencode at edge)" }
+  )
   map({ "n", "i", "v", "t" }, "<S-Up>", "<C-\\><C-N><C-w>k", { desc = "Move to upper window" })
   map({ "n", "i", "v", "t" }, "<S-Down>", "<C-\\><C-N><C-w>j", { desc = "Move to lower window" })
 
@@ -124,166 +137,6 @@ M.setup = function()
     end,
   })
   apply_highlights()
-
-  -- Sidebar width persistence across restarts.
-  local sidebar_state_file = vim.fn.stdpath("state") .. "/sidebar_widths.json"
-  local min_opencode_width = 24
-
-  local function default_opencode_width()
-    return math.max(min_opencode_width, math.floor(vim.o.columns * 0.25))
-  end
-
-  local function normalize_opencode_width(width)
-    if type(width) ~= "number" or width < min_opencode_width then
-      return default_opencode_width()
-    end
-    local max_width = math.max(min_opencode_width, vim.o.columns - 30)
-    return math.min(width, max_width)
-  end
-
-  local function get_sidebar_widths()
-    local widths = {}
-    for _, win in ipairs(vim.api.nvim_list_wins()) do
-      if vim.api.nvim_win_is_valid(win) then
-        local buf = vim.api.nvim_win_get_buf(win)
-        local ft = vim.api.nvim_get_option_value("filetype", { buf = buf })
-        if ft == "NvimTree" then
-          widths.nvimtree = vim.api.nvim_win_get_width(win)
-        end
-      end
-    end
-    local ok, opencode_term = pcall(require, "custom.opencode_terminal")
-    if ok then
-      local opencode_bufnr = opencode_term.get_active_terminal_bufnr()
-      if opencode_bufnr then
-        for _, win in ipairs(vim.api.nvim_list_wins()) do
-          if vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_buf(win) == opencode_bufnr then
-            local width = vim.api.nvim_win_get_width(win)
-            if width >= min_opencode_width then
-              widths.opencode = width
-            end
-            break
-          end
-        end
-      end
-    end
-    return widths
-  end
-
-  local function restore_opencode_width()
-    local f = io.open(sidebar_state_file, "r")
-    if not f then return end
-    local ok, data = pcall(vim.json.decode, f:read("*a"))
-    f:close()
-    if not ok or type(data) ~= "table" then return end
-    local opencode_width = data.opencode
-    if type(opencode_width) ~= "number" then
-      opencode_width = data.codex
-    end
-    if type(opencode_width) ~= "number" then
-      opencode_width = data.claude
-    end
-    opencode_width = normalize_opencode_width(opencode_width)
-    local ok2, opencode_term = pcall(require, "custom.opencode_terminal")
-    if not ok2 then return end
-    local opencode_bufnr = opencode_term.get_active_terminal_bufnr()
-    if not opencode_bufnr then return end
-    for _, win in ipairs(vim.api.nvim_list_wins()) do
-      if vim.api.nvim_win_get_buf(win) == opencode_bufnr then
-        pcall(vim.api.nvim_win_set_width, win, opencode_width)
-        break
-      end
-    end
-  end
-
-  local function has_editor_window()
-    for _, win in ipairs(vim.api.nvim_list_wins()) do
-      if vim.api.nvim_win_is_valid(win) then
-        local buf = vim.api.nvim_win_get_buf(win)
-        local ft = vim.api.nvim_get_option_value("filetype", { buf = buf })
-        local bt = vim.api.nvim_get_option_value("buftype", { buf = buf })
-        if ft ~= "NvimTree" and bt ~= "terminal" then
-          return true
-        end
-      end
-    end
-    return false
-  end
-
-  local function save_sidebar_widths()
-    if not has_editor_window() then return end
-    local widths = get_sidebar_widths()
-    if not next(widths) then return end
-    local f = io.open(sidebar_state_file, "w")
-    if f then
-      f:write(vim.json.encode(widths))
-      f:close()
-    end
-  end
-
-  -- Save on exit (only if editor windows are still present, to avoid saving
-  -- inflated widths after main window closed and sidebars expanded).
-  vim.api.nvim_create_autocmd("VimLeavePre", {
-    group = vim.api.nvim_create_augroup("SaveSidebarWidths", { clear = true }),
-    callback = save_sidebar_widths,
-  })
-
-  -- Also save on resize (debounced) so widths are captured during normal use.
-  local resize_timer = vim.uv.new_timer()
-  vim.api.nvim_create_autocmd("WinResized", {
-    group = vim.api.nvim_create_augroup("SaveSidebarWidthsOnResize", { clear = true }),
-    callback = function()
-      resize_timer:stop()
-      resize_timer:start(1000, 0, vim.schedule_wrap(save_sidebar_widths))
-    end,
-  })
-
-  -- Auto-open sidebars on startup
-  vim.api.nvim_create_autocmd("VimEnter", {
-    group = vim.api.nvim_create_augroup("AutoOpenSidebars", { clear = true }),
-    callback = function()
-      if #vim.api.nvim_list_uis() == 0 then
-        return
-      end
-
-      local main_win = vim.api.nvim_get_current_win()
-
-      pcall(function()
-        require("lazy").load { plugins = { "nvim-tree.lua" } }
-      end)
-      pcall(function()
-        vim.cmd "redraw"
-      end)
-
-      -- Open opencode (on the right)
-      pcall(function()
-        vim.cmd "Opencode"
-      end)
-      if vim.api.nvim_win_is_valid(main_win) then
-        vim.api.nvim_set_current_win(main_win)
-      end
-
-      -- Open NvimTree (on the left)
-      pcall(function()
-        vim.cmd "NvimTreeOpen"
-      end)
-      if vim.api.nvim_win_is_valid(main_win) then
-        vim.api.nvim_set_current_win(main_win)
-      end
-
-      vim.schedule(function()
-        vim.schedule(function()
-          if vim.api.nvim_win_is_valid(main_win) then
-            vim.api.nvim_set_current_win(main_win)
-            vim.cmd "stopinsert"
-          else
-            focus_main_window()
-          end
-          restore_opencode_width()
-        end)
-      end)
-    end,
-  })
 
   -- Ensure main window focus when terminal closes
   vim.api.nvim_create_autocmd("TermClose", {
