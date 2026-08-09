@@ -525,7 +525,28 @@ return {
     "linw1995/nvim-mcp",
     lazy = false,
     config = function()
-      require("nvim-mcp").setup {}
+      local setup = require("nvim-mcp").setup
+      local socket_dir = vim.env.XDG_RUNTIME_DIR
+      if not socket_dir or socket_dir == "" then
+        socket_dir = vim.env.TMPDIR
+      end
+
+      local unusable_socket_dir = socket_dir
+        and socket_dir ~= ""
+        and (vim.fn.isdirectory(socket_dir) == 0 or vim.fn.filewritable(socket_dir) ~= 2)
+      if unusable_socket_dir then
+        -- The MCP server also searches /tmp, so use it when a stale session
+        -- environment points the plugin at a directory it cannot bind in.
+        local original_runtime_dir = vim.env.XDG_RUNTIME_DIR
+        vim.env.XDG_RUNTIME_DIR = "/tmp"
+        local ok, err = pcall(setup, {})
+        vim.env.XDG_RUNTIME_DIR = original_runtime_dir
+        if not ok then
+          error(err)
+        end
+      else
+        setup {}
+      end
     end,
   },
 }
