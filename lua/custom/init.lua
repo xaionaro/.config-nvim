@@ -37,8 +37,8 @@ M.setup = function()
 
   map({ "n", "v" }, "<F2>", vim.lsp.buf.rename, { desc = "Rename symbol" })
 
-  -- Make room for ScrollView/signs without covering text
-  vim.opt.textwidth = 120
+  vim.opt.textwidth = 0
+  vim.opt.wrap = true
   vim.opt.colorcolumn = "120"
   vim.api.nvim_set_hl(0, "ColorColumn", { bg = "#0F0F0F" })
   vim.opt.signcolumn = "yes:2"
@@ -71,10 +71,7 @@ M.setup = function()
         local bt = vim.api.nvim_get_option_value("buftype", { buf = bufnr }) or ""
         -- Main window: not a sidebar, not a terminal, and is a normal file (bt == "")
         -- We allow ft == "" because a new empty buffer has no filetype yet.
-        if
-            (ft == "" or (ft ~= "NvimTree" and ft ~= "toggleterm"))
-            and bt == ""
-        then
+        if (ft == "" or (ft ~= "NvimTree" and ft ~= "toggleterm")) and bt == "" then
           vim.api.nvim_set_current_win(win)
           vim.cmd "stopinsert"
           return true
@@ -310,8 +307,8 @@ local function install_lazy_reloader_workaround()
           -- Normalize message to string
           local text = type(msg) == "table" and table.concat(msg, "\n") or tostring(msg)
           -- Append full details to lazy state file for inspection
-          local statefile = (core_config.options and core_config.options.state) or
-              (vim.fn.stdpath("state") .. "/lazy/state.json")
+          local statefile = (core_config.options and core_config.options.state)
+            or (vim.fn.stdpath "state" .. "/lazy/state.json")
           local fd = io.open(statefile, "a")
           if fd then
             fd:write("\n" .. text .. "\n")
@@ -319,8 +316,12 @@ local function install_lazy_reloader_workaround()
           end
           -- Show a concise, single-line notify (non-blocking)
           vim.schedule(function()
-            pcall(vim.notify, (type(msg) == "table" and (msg[1] or "Config change") or text), vim.log.levels.INFO,
-              { title = "lazy.nvim" })
+            pcall(
+              vim.notify,
+              (type(msg) == "table" and (msg[1] or "Config change") or text),
+              vim.log.levels.INFO,
+              { title = "lazy.nvim" }
+            )
           end)
         end)
       end
@@ -354,13 +355,13 @@ local function install_lazy_reloader_workaround()
         pcall(vim.notify, summary, vim.log.levels.INFO, { title = "lazy.nvim" })
 
         pcall(function()
-          local statefile = (core_config.options and core_config.options.state) or
-              (vim.fn.stdpath("state") .. "/lazy/state.json")
+          local statefile = (core_config.options and core_config.options.state)
+            or (vim.fn.stdpath "state" .. "/lazy/state.json")
           local fd = io.open(statefile, "a")
           if not fd then
             return
           end
-          fd:write("\n# Config Change Detected. Reloading...\n")
+          fd:write "\n# Config Change Detected. Reloading...\n"
           for _, change in ipairs(changes or {}) do
             local what = tostring(change.what or "")
             local file = tostring(change.file or "")
@@ -380,7 +381,11 @@ end
 
 pcall(install_lazy_reloader_workaround)
 -- Try again after startup in case lazy is loaded later
-vim.api.nvim_create_autocmd("VimEnter", { callback = function() pcall(install_lazy_reloader_workaround) end })
+vim.api.nvim_create_autocmd("VimEnter", {
+  callback = function()
+    pcall(install_lazy_reloader_workaround)
+  end,
+})
 
 -- Ensure the user always sees a minimal notification when the plugins spec is saved.
 -- This runs independently of lazy's internal reload logic so it will always show
@@ -394,11 +399,11 @@ vim.api.nvim_create_autocmd("BufWritePost", {
       pcall(vim.api.nvim_echo, { { summary } }, false, {})
       pcall(function()
         local ok, core = pcall(require, "lazy.core.config")
-        local statefile = (ok and core and core.options and core.options.state) or
-            (vim.fn.stdpath("state") .. "/lazy/state.json")
+        local statefile = (ok and core and core.options and core.options.state)
+          or (vim.fn.stdpath "state" .. "/lazy/state.json")
         local fd = io.open(statefile, "a")
         if fd then
-          fd:write("\n# Config Change Detected (autocmd)\n- changed: lua/custom/plugins.lua\n")
+          fd:write "\n# Config Change Detected (autocmd)\n- changed: lua/custom/plugins.lua\n"
           fd:close()
         end
       end)
