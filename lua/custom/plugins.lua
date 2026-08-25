@@ -123,6 +123,28 @@ return {
     ft = { "markdown", "Avante", "copilot-chat" },
   },
 
+  {
+    "selimacerbas/markdown-preview.nvim",
+    dependencies = { "selimacerbas/live-server.nvim" },
+    cmd = { "MarkdownPreview", "MarkdownPreviewRefresh", "MarkdownPreviewStop" },
+    ft = { "markdown" },
+    keys = {
+      {
+        "<leader>mp",
+        "<Cmd>MarkdownPreview<CR>",
+        ft = "markdown",
+        desc = "Markdown preview",
+      },
+    },
+    config = function()
+      require("markdown_preview").setup {
+        host = "127.0.0.1",
+        allow_raw_html = false,
+        mermaid_renderer = "js",
+      }
+    end,
+  },
+
   -- Copilot Chat (Backup/Aggressive mode)
   {
     "CopilotC-Nvim/CopilotChat.nvim",
