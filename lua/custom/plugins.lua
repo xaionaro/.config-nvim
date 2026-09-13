@@ -20,10 +20,12 @@ return {
 
       if opts.highlight and opts.highlight.enable then
         vim.api.nvim_create_autocmd("FileType", {
-          callback = function()
-            local lang = vim.treesitter.language.get_lang(vim.bo.filetype) or vim.bo.filetype
-            if pcall(vim.treesitter.get_parser, 0, lang) then
-              vim.treesitter.start()
+          callback = function(event)
+            local filetype = vim.bo[event.buf].filetype
+            local lang = vim.treesitter.language.get_lang(filetype) or filetype
+            local parser = vim.treesitter.get_parser(event.buf, lang)
+            if parser then
+              vim.treesitter.start(event.buf, lang)
             end
           end,
         })
