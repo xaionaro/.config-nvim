@@ -50,7 +50,18 @@ for _, name in ipairs(servers) do
       local config = vim.lsp.config[name]
       if config then
         -- print("Starting LSP " .. name .. " for buffer " .. ev.buf)
-        vim.lsp.start(config, { bufnr = ev.buf })
+        -- nvim-lspconfig still exposes legacy root_dir functions that take a
+        -- filename and return a directory.  vim.lsp.start() expects the
+        -- already-resolved directory and otherwise forwards the function to
+        -- vim.net, where it is later passed to uv.fs_stat().
+        local start_config = vim.deepcopy(config)
+        if type(start_config.root_dir) == "function" then
+          local filename = vim.fs.normalize(vim.api.nvim_buf_get_name(ev.buf))
+          start_config.root_dir = start_config.root_dir(filename, ev.buf)
+        elseif not start_config.root_dir and start_config.root_markers then
+          start_config.root_dir = vim.fs.root(ev.buf, start_config.root_markers)
+        end
+        vim.lsp.start(start_config, { bufnr = ev.buf })
       else
         -- print("No config found for " .. name)
       end

@@ -64,6 +64,9 @@ return {
   -- Tabs / Bufferline
   {
     "romgrk/barbar.nvim",
+    -- BufModifiedSet was removed in Neovim 0.13; keep the compatible fix until
+    -- the next tagged Barbar release includes it.
+    commit = "a4bef5b4fc1f064f2f673172252028eae18191c9",
     lazy = false,
     dependencies = { "lewis6991/gitsigns.nvim", "nvim-tree/nvim-web-devicons" },
     init = function()
