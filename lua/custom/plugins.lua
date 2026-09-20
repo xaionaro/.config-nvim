@@ -22,10 +22,17 @@ return {
         vim.api.nvim_create_autocmd("FileType", {
           callback = function(event)
             local filetype = vim.bo[event.buf].filetype
+            if filetype == "" then
+              return
+            end
+
             local lang = vim.treesitter.language.get_lang(filetype) or filetype
-            local parser = vim.treesitter.get_parser(event.buf, lang)
-            if parser then
-              vim.treesitter.start(event.buf, lang)
+            -- Not every Vim filetype has a Tree-sitter parser (for example,
+            -- the generic `conf` filetype).  `get_parser()` throws when the
+            -- parser is unavailable, so probe it safely before starting.
+            local ok, parser = pcall(vim.treesitter.get_parser, event.buf, lang)
+            if ok and parser then
+              pcall(vim.treesitter.start, event.buf, lang)
             end
           end,
         })
